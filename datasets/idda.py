@@ -4,7 +4,7 @@ import numpy as np
 from PIL import Image
 import torch
 from torchvision.datasets import VisionDataset
-#import datasets.ss_transforms as tr
+#mport datasets.ss_transforms as tr
 
 class_eval = [255, 2, 4, 255, 11, 5, 0, 0, 1, 8, 13, 3, 7, 6, 255, 255, 15, 14, 12, 9, 10]
 
