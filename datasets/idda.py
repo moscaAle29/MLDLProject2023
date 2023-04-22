@@ -1,5 +1,5 @@
 import os
-from typing import Any
+from typing import Any, List
 import numpy as np
 from PIL import Image
 from torch import from_numpy
