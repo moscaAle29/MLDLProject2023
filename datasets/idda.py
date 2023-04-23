@@ -4,7 +4,7 @@ import numpy as np
 from PIL import Image
 import torch
 from torchvision.datasets import VisionDataset
-#mport datasets.ss_transforms as tr
+import datasets.ss_transforms as tr
 
 class_eval = [255, 2, 4, 255, 11, 5, 0, 0, 1, 8, 13, 3, 7, 6, 255, 255, 15, 14, 12, 9, 10]
 
@@ -28,16 +28,15 @@ class IDDADataset(VisionDataset):
             path_to_image = os.path.join(root, 'images', f'{filename}.jpg')
             path_to_label = os.path.join(root, 'labels', f'{filename}.png')
 
-            #load image into a numpy array
-            im_frame = Image.open(path_to_image)
-            numpy_image = np.array(im_frame)
-
+            #load image 
+            img = Image.open(path_to_image)
+            
             #load label into a numpy array
-            im_frame = Image.open(path_to_label)
-            numpy_label = np.array(im_frame)
+            label = Image.open(path_to_label)
+  
 
-            images.append(numpy_image)
-            labels.append(numpy_label)
+            images.append(img)
+            labels.append(label)
         
         self.images = images
         self.labels = labels
@@ -52,20 +51,16 @@ class IDDADataset(VisionDataset):
         return lambda x: torch.from_numpy(mapping[x])
 
     def __getitem__(self, index: int) -> Any:
-        # TODO: missing code here!
-        raise NotImplementedError
+        #transform image
+        if self.transform is not None:
+            image = self.transform(self.images[index])
+
+        #transform label
+        if self.target_transform is not None:
+            label = self.target_transform(self.labels[index])
+
+        return image, label
 
     def __len__(self) -> int:
         return len(self.list_samples)
 
-
-if __name__ == '__main__':
-    list_samples = ["246999_T02_CN_A", "117898_T02_CN_A", "201551_T02_CN_A", "154799_T02_CN_A", "221819_T02_CN_A", "147584_T02_CN_A", "116081_T02_CN_A", "199782_T02_CN_A", "38549_T02_CN_A", "134949_T02_CN_A", "219658_T02_CN_A", "221088_T02_CN_A", "180859_T02_CN_A", "50442_T02_CN_A", "128671_T02_CN_A", "223244_T02_CN_A", "146645_T02_CN_A", "188954_T02_CN_A", "238348_T02_CN_A", "156597_T02_CN_A", "144880_T02_CN_A", "181787_T02_CN_A", "37489_T02_CN_A", "12048_T02_CN_A", "139486_T02_CN_A"]
-    root = 'data/idda'
-
-    dataset = IDDADataset(root=root,list_samples=list_samples)
-
-    print("this is image")
-    print(dataset.images[0])
-    print("this is label")
-    print(dataset.labels[0])
