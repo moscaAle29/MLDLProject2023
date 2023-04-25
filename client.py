@@ -37,6 +37,17 @@ class Client:
         if self.args.model == 'resnet18':
             return self.model(images)
         raise NotImplementedError
+    
+    def calc_losses(self, images, labels):
+
+        outputs = self.model(images)
+        loss_tot = self.reduction(self.criterion(outputs, labels), labels)
+        #dict_calc_losses = {'loss_tot' : loss_tot}
+
+        return loss_tot, outputs
+    
+    def generate_update(self):
+        return copy.deepcopy(self.model.state_dict())
 
     def run_epoch(self, cur_epoch, optimizer):
         """
@@ -44,9 +55,19 @@ class Client:
         :param cur_epoch: current epoch of training
         :param optimizer: optimizer used for the local training
         """
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        #dict_all_epoch_losses = defaultdict(lambda: 0)
+
         for cur_step, (images, labels) in enumerate(self.train_loader):
-            # TODO: missing code here!
-            raise NotImplementedError
+            images = images.to(device, dtype = torch.float32)
+            labels = labels.to(device, dtype = torch.long)
+
+            optimizer.zero_grad()
+
+            loss_tot, outputs = self.calc_losses(images, labels)
+            loss_tot.backward()
+
+            optimizer.step()
 
     def train(self):
         """
@@ -54,10 +75,13 @@ class Client:
         (by calling the run_epoch method for each local epoch of training)
         :return: length of the local dataset, copy of the model parameters
         """
-        # TODO: missing code here!
+        optimizer = optim.SGD(self.model.parameters(), lr=0.001, momentum=0.9)
+        self.model.train()
+
         for epoch in range(self.args.num_epochs):
-            # TODO: missing code here!
-            raise NotImplementedError
+            self.run_epoch(epoch, optimizer)
+        
+        return len(self.dataset), self.generate_update()
 
     def test(self, metric):
         """
