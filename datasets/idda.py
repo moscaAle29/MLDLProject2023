@@ -57,7 +57,7 @@ class IDDADataset(VisionDataset):
 
         #transform label
         if self.target_transform is not None:
-            label = self.target_transform(self.transforms(self.labels[index]))
+            label = self.target_transform(self.transform(self.labels[index]))
 
         return image, label
 
