@@ -92,5 +92,6 @@ class Client:
         with torch.no_grad():
             for i, (images, labels) in enumerate(self.test_loader):
                 # TODO: missing code here!
-                raise NotImplementedError
+                outputs = self.model(images)
+                
                 self.update_metric(metric, outputs, labels)
