@@ -204,7 +204,7 @@ def centralised():
         train_client.train()
 
     for test_client in test_clients:
-        test_clients.test(metrics)
+        test_client.test(metrics)
 
 
 
