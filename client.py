@@ -92,6 +92,10 @@ class Client:
         with torch.no_grad():
             for i, (images, labels) in enumerate(self.test_loader):
                 # TODO: missing code here!
+                device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+                images = images.to(device, dtype = torch.float32)
+                labels = labels.to(device, dtype = torch.long)
+                
                 outputs = self.model(images)
 
                 self.update_metric(metric, outputs, labels)
