@@ -95,6 +95,6 @@ class Client:
                 images = images.to(device, dtype = torch.float32)
                 labels = labels.to(device, dtype = torch.long)
 
-                outputs = self.model(images)
+                outputs = self.model(images)['out']
 
                 self.update_metric(metric, outputs, labels)
