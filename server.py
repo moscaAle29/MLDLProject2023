@@ -12,6 +12,7 @@ class Server:
         self.train_clients = train_clients
         self.test_clients = test_clients
         self.model = model
+        self.weights={}
         self.metrics = metrics
         self.model_params_dict = copy.deepcopy(self.model.state_dict())
 
@@ -27,9 +28,14 @@ class Server:
         """
         updates = []
         for i, c in enumerate(clients):
-            # TODO: missing code here!
-            raise NotImplementedError
-        return updates
+            c.train()
+            updates[i]=c.get_updates()
+        self.aggregate(updates)
+        for c in self.train_clients:
+            c.update_weights(self.weights)
+        #not sure
+        for c in self.train_clients:
+            c.update_weights(self.weights)
 
     def aggregate(self, updates):
         """
@@ -37,16 +43,20 @@ class Server:
         :param updates: updates received from the clients
         :return: aggregated parameters
         """
-        # TODO: missing code here!
-        raise NotImplementedError
+        final_update={}
+        for i in range(len(updates)):
+            final_update+=updates
+        alpha= 1#nk/n but i don't know what it is
+        final_update=self.weight-alpha*updates
+        self.weights=final_update
+        return final_update
 
     def train(self):
         """
         This method orchestrates the training the evals and tests at rounds level
         """
         for r in range(self.args.num_rounds):
-            # TODO: missing code here!
-            raise NotImplementedError
+            self.train_round()
 
     def eval_train(self):
         """
