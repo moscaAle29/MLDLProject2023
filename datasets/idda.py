@@ -53,7 +53,7 @@ class IDDADataset(VisionDataset):
     def __getitem__(self, index: int) -> Any:
         #transform image
         if self.transform is not None:
-            image, label = self.transform(self.images[index], self.transform(self.labels[index]))
+            image, label = self.transform(self.images[index], self.labels[index])
 
         #transform label
         if self.target_transform is not None:
