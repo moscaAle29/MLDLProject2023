@@ -40,7 +40,7 @@ class Client:
     
     def calc_losses(self, images, labels):
 
-        outputs = self.model(images)
+        outputs = self.model(images)['out']
         loss_tot = self.reduction(self.criterion(outputs, labels), labels)
         #dict_calc_losses = {'loss_tot' : loss_tot}
 
@@ -93,5 +93,5 @@ class Client:
             for i, (images, labels) in enumerate(self.test_loader):
                 # TODO: missing code here!
                 outputs = self.model(images)
-                
+
                 self.update_metric(metric, outputs, labels)
