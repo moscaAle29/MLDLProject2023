@@ -183,6 +183,62 @@ def main():
     server = Server(args, train_clients, test_clients, model, metrics)
     server.train()
 
+def centralised():
+    parser = get_parser()
+    args = parser.parse_args()
+    set_seed(args.seed)
+
+    print(f'Initializing model...')
+    model = model_init(args)
+    model.cuda()
+    print('Done.')
+
+    print('Generate datasets...')
+    train_datasets, test_datasets = get_datasets_centralised(args)
+    print('Done.')
+
+    metrics = set_metrics(args)
+    train_clients, test_clients = gen_clients(args, train_datasets, test_datasets, model)
+
+    for train_client in train_clients:
+        train_client.train()
+
+    for test_client in test_clients:
+        test_clients.test(metrics)
+
+
+
+
+def get_datasets_centralised(args):
+
+    train_datasets = []
+    train_transforms, test_transforms = get_transforms(args)
+
+    if args.dataset == 'idda':
+        root = 'data/idda'
+
+        with open(os.path.join(root, 'train.txt'), 'r') as f:
+            train_data = f.read().splitlines()
+            train_datasets.append(IDDADataset(root=root, list_samples=train_data, transform=train_transforms,
+                                                client_name='test_same_dom'))
+            
+        with open(os.path.join(root, 'test_same_dom.txt'), 'r') as f:
+            test_same_dom_data = f.read().splitlines()
+            test_same_dom_dataset = IDDADataset(root=root, list_samples=test_same_dom_data, transform=test_transforms,
+                                                client_name='test_same_dom')
+        with open(os.path.join(root, 'test_diff_dom.txt'), 'r') as f:
+            test_diff_dom_data = f.read().splitlines()
+            test_diff_dom_dataset = IDDADataset(root=root, list_samples=test_diff_dom_data, transform=test_transforms,
+                                                client_name='test_diff_dom')
+        test_datasets = [test_same_dom_dataset, test_diff_dom_dataset]
+
+
+    return train_datasets, test_datasets
+
+
+
+
+
 
 if __name__ == '__main__':
-    main()
+    centralised()
