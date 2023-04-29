@@ -202,9 +202,13 @@ def centralised():
 
     for train_client in train_clients:
         train_client.train()
+    
+    print("finish training")
 
     test_clients[0].test(metrics['test_same_dom'])
     test_clients[1].test(metrics['test_diff_dom'])
+
+    print("finish testing")
 
 
 
@@ -242,3 +246,5 @@ def get_datasets_centralised(args):
 
 if __name__ == '__main__':
     centralised()
+
+    print("finish running script")
