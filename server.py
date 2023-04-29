@@ -12,7 +12,7 @@ class Server:
         self.train_clients = train_clients
         self.test_clients = test_clients
         self.model = model
-        self.weights={}
+        #self.weights={}
         self.metrics = metrics
         self.model_params_dict = copy.deepcopy(self.model.state_dict())
 
@@ -27,15 +27,16 @@ class Server:
             :return: model updates gathered from the clients, to be aggregated
         """
         updates = []
-        for i, c in enumerate(clients):
-            c.train()
-            updates[i]=c.get_updates()
+
+        for client in clients:
+            print(f'client-{client.name}')
+
+            client.model.load_state_dict(self.model_params_dict)
+
+            update = client.train()
+            updates.append(update)
+
         self.aggregate(updates)
-        for c in self.train_clients:
-            c.update_weights(self.weights)
-        #not sure
-        for c in self.train_clients:
-            c.update_weights(self.weights)
 
     def aggregate(self, updates):
         """
@@ -43,20 +44,29 @@ class Server:
         :param updates: updates received from the clients
         :return: aggregated parameters
         """
-        final_update={}
-        for i in range(len(updates)):
-            final_update+=updates
-        alpha= 1#nk/n but i don't know what it is
-        final_update=self.weight-alpha*updates
-        self.weights=final_update
-        return final_update
+        global_num_samples = 0
+        global_param = OrderedDict()
+
+        for local_num_samples, local_param in updates:
+            weight = local_num_samples / global_num_samples
+
+            for key, value in local_param:
+                new_value = global_param.get(key, 0) + weight * value.type(torch.FloatTensor)
+                global_param[key] = new_value.to('cuda')
+        
+        self.model.load_state_dict(global_param)
+        self.model_params_dict = copy.deepcopy(self.model.state_dict())
+
 
     def train(self):
         """
         This method orchestrates the training the evals and tests at rounds level
         """
+        print("START TRAINING")
+
         for r in range(self.args.num_rounds):
-            self.train_round()
+            print(f'ROUND-{r}')
+            self.train_round(self.select_clients())
 
     def eval_train(self):
         """
