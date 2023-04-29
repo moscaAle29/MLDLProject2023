@@ -203,8 +203,8 @@ def centralised():
     for train_client in train_clients:
         train_client.train()
 
-    for test_client in test_clients:
-        test_client.test(metrics)
+    test_clients[0].test(metrics['test_same_dom'])
+    test_clients[1].test(metrics['test_diff_dom'])
 
 
 
