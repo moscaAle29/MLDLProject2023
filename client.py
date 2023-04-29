@@ -97,4 +97,4 @@ class Client:
 
                 outputs = self.model(images)['out']
 
-                self.update_metric(metric, outputs, labels)
+                Client.update_metric(metric, outputs, labels)
