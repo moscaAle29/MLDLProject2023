@@ -75,7 +75,6 @@ class Server:
         for c in self.train_clients:
             c.eval_train(self.metrics['eval_train'])
         
-        raise NotImplementedError
 
     def test(self):
         """
