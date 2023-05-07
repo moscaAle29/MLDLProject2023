@@ -182,6 +182,7 @@ def main():
     train_clients, test_clients = gen_clients(args, train_datasets, test_datasets, model)
     server = Server(args, train_clients, test_clients, model, metrics)
     server.train()
+    server.eval_train()
 
 def centralised():
     parser = get_parser()
@@ -210,9 +211,6 @@ def centralised():
 
     print("finish testing")
 
-
-
-
 def get_datasets_centralised(args):
 
     train_datasets = []
@@ -238,11 +236,6 @@ def get_datasets_centralised(args):
 
 
     return train_datasets, test_datasets
-
-
-
-
-
 
 if __name__ == '__main__':
     centralised()

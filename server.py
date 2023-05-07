@@ -12,7 +12,6 @@ class Server:
         self.train_clients = train_clients
         self.test_clients = test_clients
         self.model = model
-        #self.weights={}
         self.metrics = metrics
         self.model_params_dict = copy.deepcopy(self.model.state_dict())
 
@@ -62,7 +61,7 @@ class Server:
         """
         This method orchestrates the training the evals and tests at rounds level
         """
-        print("START TRAINING")
+        print("-------------------------START TRAINING-------------------------")
 
         for r in range(self.args.num_rounds):
             print(f'ROUND-{r}')
@@ -72,7 +71,10 @@ class Server:
         """
         This method handles the evaluation on the train clients
         """
-        # TODO: missing code here!
+        print("-------------------------EVALUATION METRICS-------------------------")
+        for c in self.train_clients:
+            c.eval_train(self.metrics['eval_train'])
+        
         raise NotImplementedError
 
     def test(self):

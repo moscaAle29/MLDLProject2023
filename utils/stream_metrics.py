@@ -118,6 +118,7 @@ class StreamSegMetrics(Metrics):
 
     def __str__(self):
         string = "\n"
+        self.get_results()
         ignore = ["Class IoU", "Class Acc", "Class Prec",
                   "Confusion Matrix Pred", "Confusion Matrix", "Confusion Matrix Text"]
         for k, v in self.results.items():

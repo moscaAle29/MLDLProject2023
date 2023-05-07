@@ -83,6 +83,19 @@ class Client:
         
         return len(self.dataset), self.generate_update()
 
+    def eval_train(self,metric):
+        
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        
+        for cur_step, (images, labels) in enumerate(self.train_loader):
+            images = images.to(device, dtype = torch.float32)
+            labels = labels.to(device, dtype = torch.long)
+            
+            output=self.model(images)['out']
+            metric.update(label_trues=labels, label_preds=output)
+        
+        print(metric)
+    
     def test(self, metric):
         """
         This method tests the model on the local dataset of the client.
@@ -97,4 +110,4 @@ class Client:
 
                 outputs = self.model(images)['out']
 
-                Client.update_metric(metric, outputs, labels)
+                self.update_metric(metric, outputs, labels)
