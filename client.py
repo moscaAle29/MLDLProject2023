@@ -127,6 +127,7 @@ class Client:
                 labels_, prediction  = self.update_metric(metric, outputs, labels)
 
                 if i % 50 == 0:
+                    print(f'{self.name}-{i}')
                     data.append([i, wandb.Image(images.cpu()), wandb.Image(prediction),  wandb.Image(labels_)])
         
         self.logger.log_table(key=self.name, columns=columns, data=data)
