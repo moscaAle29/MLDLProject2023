@@ -117,7 +117,6 @@ class Client:
         self.model.eval()
         with torch.no_grad():
             for i, (images, labels) in enumerate(self.test_loader):
-                input = copy.deepcopy(images)
 
                 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
                 images = images.to(device, dtype = torch.float32)
@@ -127,7 +126,7 @@ class Client:
 
                 labels_, prediction  = self.update_metric(metric, outputs, labels)
 
-                if i % 100 == 0:
-                    data.append([i, wandb.Image(input), wandb.Image(prediction),  wandb.Image(labels_),])
+                if i % 50 == 0:
+                    data.append([i, wandb.Image(images.cpu()), wandb.Image(prediction),  wandb.Image(labels_)])
         
         self.logger.log_table(key=self.name, columns=columns, data=data)
