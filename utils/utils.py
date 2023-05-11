@@ -1,4 +1,5 @@
 import torch.nn as nn
+from utils.logger import Logger
 
 
 class HardNegativeMining(nn.Module):
@@ -20,3 +21,11 @@ class MeanReduction:
     def __call__(self, x, target):
         x = x[target != 255]
         return x.mean()
+
+
+def set_up_logger():
+
+    logger = Logger(name = 'fed-idda', project = '2B')
+
+    return logger
+

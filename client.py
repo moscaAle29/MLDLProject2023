@@ -7,6 +7,8 @@ from torch.utils.data import DataLoader
 
 from utils.utils import HardNegativeMining, MeanReduction
 
+import wandb
+
 
 class Client:
 
@@ -21,6 +23,8 @@ class Client:
         self.criterion = nn.CrossEntropyLoss(ignore_index=255, reduction='none')
         self.reduction = HardNegativeMining() if self.args.hnm else MeanReduction()
 
+        self.logger = None
+
     def __str__(self):
         return self.name
 
@@ -30,6 +34,8 @@ class Client:
         labels = labels.cpu().numpy()
         prediction = prediction.cpu().numpy()
         metric.update(labels, prediction)
+
+        return labels, prediction
 
     def _get_outputs(self, images):
         if self.args.model == 'deeplabv3_mobilenetv2':
@@ -87,12 +93,17 @@ class Client:
         
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         
-        for cur_step, (images, labels) in enumerate(self.train_loader):
-            images = images.to(device, dtype = torch.float32)
-            labels = labels.to(device, dtype = torch.long)
+        self.model.eval()
+
+        with torch.no_grad():
+            for cur_step, (images, labels) in enumerate(self.train_loader):
+                images = images.to(device, dtype = torch.float32)
+                labels = labels.to(device, dtype = torch.long)
             
-            output=self.model(images)['out']
-            metric.update(label_trues=labels, label_preds=output)
+                outputs = self.model(images)['out']
+
+                #metric.update(label_trues=labels, label_preds=output)
+                self.update_metric(metric, outputs, labels)
         
         print(metric)
     
@@ -101,13 +112,23 @@ class Client:
         This method tests the model on the local dataset of the client.
         :param metric: StreamMetric object
         """
+        #this is used to creat a table for wandb
+        data = []
+        columns = ["id", "image", "prediction", "truth"]
+
         self.model.eval()
         with torch.no_grad():
             for i, (images, labels) in enumerate(self.test_loader):
+                input = copy.deepcopy(images)
+
                 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
                 images = images.to(device, dtype = torch.float32)
                 labels = labels.to(device, dtype = torch.long)
 
                 outputs = self.model(images)['out']
 
-                self.update_metric(metric, outputs, labels)
+                labels_, prediction  = self.update_metric(metric, outputs, labels)
+
+                data.append([i, wandb.Image(input), wandb.Image(labels_), wandb.Image(prediction)])
+        
+        self.logger.log_table(key=self.name, columns=columns, data=data)

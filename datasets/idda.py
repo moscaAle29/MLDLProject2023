@@ -31,7 +31,7 @@ class IDDADataset(VisionDataset):
             #load image 
             img = Image.open(path_to_image)
             
-            #load label into a numpy array
+            #load label 
             label = Image.open(path_to_label)
   
 

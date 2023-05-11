@@ -4,6 +4,8 @@ from collections import OrderedDict
 import numpy as np
 import torch
 
+from utils.utils import set_up_logger
+
 
 class Server:
 
@@ -14,6 +16,11 @@ class Server:
         self.model = model
         self.metrics = metrics
         self.model_params_dict = copy.deepcopy(self.model.state_dict())
+
+        self.logger = set_up_logger()
+
+        for test_client in test_clients:
+            test_client.logger = self.logger
 
     def select_clients(self):
         num_clients = min(self.args.clients_per_round, len(self.train_clients))
@@ -65,7 +72,21 @@ class Server:
 
         for r in range(self.args.num_rounds):
             print(f'ROUND-{r}')
+
+            #evaluate the current model before updating
+            self.eval_train()
+
+            #train model for one round with all selected clients and update the model
             self.train_round(self.select_clients())
+
+            #get the train evaluation
+            train_score = self.metrics['eval_train'].get_results()
+            
+            #log the evaluation
+            self.logger.log_metrics({'Train Mean IoU': train_score['Mean IoU']}, step=r + 1)
+            
+            #erase the old results before evaluate the updated model
+            self.metrics['eval_train'].reset()
 
     def eval_train(self):
         """
@@ -80,5 +101,13 @@ class Server:
         """
             This method handles the test on the test clients
         """
-        # TODO: missing code here!
-        raise NotImplementedError
+        for c in self.test_clients:
+            if c.name == 'test_same_dom':
+                c.test(self.metrics['test_same_dom'])
+
+                test_score = self.metrics['test_same_dom'].get_results()
+                self.logger.log_metrics({'Test Same Dom Mean IoU': test_score['Mean IoU']})
+            else:
+                c.test(self.metrics['test_diff_dom'])
+                self.logger.log_metrics({'Test Diff Dom Mean IoU': test_score['Mean IoU']})
+
