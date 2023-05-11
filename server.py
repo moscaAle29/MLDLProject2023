@@ -61,7 +61,7 @@ class Server:
 
             for key, value in local_param.items():
                 old_value = global_param.get(key, 0)
-                if old_value == 0:
+                if type(old_value) == int:
                     new_value = weight * (value.type(torch.FloatTensor).cpu())
                 else:
                     new_value = old_value.cpu() + weight * (value.type(torch.FloatTensor).cpu())
