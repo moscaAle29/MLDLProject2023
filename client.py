@@ -128,7 +128,7 @@ class Client:
 
                 if i % 50 == 0:
                     print(f'{self.name}-{i}')
-                    data.append([i, wandb.Image(images.cpu().numpy()), wandb.Image(prediction),  wandb.Image(labels_)])
+                    data.append([i, wandb.Image(images.cpu()), wandb.Image(prediction),  wandb.Image(labels_)])
         
         print(f'number of logged row {len(data)}')
         self.logger.log_table(key=self.name, columns=columns, data=data)
