@@ -25,7 +25,7 @@ class MeanReduction:
 
 def set_up_logger():
 
-    logger = Logger(name = 'fed-idda', project = '2B')
+    logger = Logger(name = 'fed-idda-alpha', project = '2B')
 
     return logger
 
