@@ -104,9 +104,7 @@ class Client:
 
                 #metric.update(label_trues=labels, label_preds=output)
                 self.update_metric(metric, outputs, labels)
-        
-        print(metric)
-    
+            
     def test(self, metric):
         """
         This method tests the model on the local dataset of the client.
