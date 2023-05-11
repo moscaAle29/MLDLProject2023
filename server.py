@@ -113,13 +113,19 @@ class Server:
         """
             This method handles the test on the test clients
         """
+        print("-------------------------START TESTING-------------------------")
+
         for c in self.test_clients:
             if c.name == 'test_same_dom':
+                print("-------------------------SAME DOM-------------------------")
+
                 c.test(self.metrics['test_same_dom'])
 
                 test_score = self.metrics['test_same_dom'].get_results()
                 self.logger.log_metrics({'Test Same Dom Mean IoU': test_score['Mean IoU']})
             else:
+                print("-------------------------DIFF DOM-------------------------")
+
                 c.test(self.metrics['test_diff_dom'])
                 self.logger.log_metrics({'Test Diff Dom Mean IoU': test_score['Mean IoU']})
 
