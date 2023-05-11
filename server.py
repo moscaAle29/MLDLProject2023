@@ -60,7 +60,7 @@ class Server:
             weight = local_num_samples / global_num_samples
 
             for key, value in local_param.items():
-                new_value = global_param.get(key, 0) + weight * value.type(torch.FloatTensor)
+                new_value = global_param.get(key, 0) + weight * value.type(torch.FloatTensor).cpu()
                 global_param[key] = new_value.to('cuda')
         
         self.model.load_state_dict(global_param)
@@ -89,6 +89,8 @@ class Server:
             
             #erase the old results before evaluate the updated model
             self.metrics['eval_train'].reset()
+
+            print("FINISH TRAIN EVALUATION")
 
             #train model for one round with all selected clients and update the model
             self.train_round(selected_clients)
