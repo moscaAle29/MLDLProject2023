@@ -53,6 +53,9 @@ class Server:
         global_num_samples = 0
         global_param = OrderedDict()
 
+        for local_num_samples,_ in updates:
+            global_num_samples += local_num_samples
+
         for local_num_samples, local_param in updates:
             weight = local_num_samples / global_num_samples
 
@@ -73,11 +76,10 @@ class Server:
         for r in range(self.args.num_rounds):
             print(f'ROUND-{r}')
 
-            #evaluate the current model before updating
-            self.eval_train()
+            selected_clients = self.select_clients()
 
-            #train model for one round with all selected clients and update the model
-            self.train_round(self.select_clients())
+            #evaluate the current model before updating
+            self.eval_train(selected_clients)
 
             #get the train evaluation
             train_score = self.metrics['eval_train'].get_results()
@@ -88,12 +90,15 @@ class Server:
             #erase the old results before evaluate the updated model
             self.metrics['eval_train'].reset()
 
-    def eval_train(self):
+            #train model for one round with all selected clients and update the model
+            self.train_round(selected_clients)
+
+    def eval_train(self, selected_clients):
         """
         This method handles the evaluation on the train clients
         """
         print("-------------------------EVALUATION METRICS-------------------------")
-        for c in self.train_clients:
+        for c in selected_clients:
             c.eval_train(self.metrics['eval_train'])
         
 
