@@ -60,7 +60,12 @@ class Server:
             weight = local_num_samples / global_num_samples
 
             for key, value in local_param.items():
-                new_value = global_param.get(key, 0).cpu() + weight * (value.type(torch.FloatTensor).cpu())
+                old_value = global_param.get(key, 0)
+                if old_value == 0:
+                    new_value = weight * (value.type(torch.FloatTensor).cpu())
+                else:
+                    new_value = old_value.cpu() + weight * (value.type(torch.FloatTensor).cpu())
+
                 global_param[key] = new_value.to('cuda')
         
         self.model.load_state_dict(global_param)
