@@ -59,7 +59,7 @@ class Server:
         for local_num_samples, local_param in updates:
             weight = local_num_samples / global_num_samples
 
-            for key, value in local_param:
+            for key, value in local_param.items():
                 new_value = global_param.get(key, 0) + weight * value.type(torch.FloatTensor)
                 global_param[key] = new_value.to('cuda')
         
