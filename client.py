@@ -153,8 +153,8 @@ class Client:
                     _, prediction = outputs.max(dim=1)
 
                     images = torch.squeeze(images, 0)
-                    prediction = prediction.cpu()
-                    labels = labels.cpu()
+                    prediction = torch.squeeze(prediction.cpu(), 0)
+                    labels = torch.squeeze(labels.cpu(), 0)
 
                     img1 = wandb.Image(images, masks = 
                                        {
