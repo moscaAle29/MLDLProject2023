@@ -112,10 +112,6 @@ class Client:
         This method tests the model on the local dataset of the client.
         :param metric: StreamMetric object
         """
-        #this is used to creat a table for wandb
-        data = []
-        columns = ["id",'image', "prediction", "truth"]
-
         self.model.eval()
 
         with torch.no_grad():
@@ -130,6 +126,10 @@ class Client:
                 self.update_metric(metric, outputs, labels)
 
                 if i == 50:
+                    #this is used to creat a table for wandb
+                    data = []
+                    columns = ["id",'image', "prediction", "truth"]
+                    
                     print(f'{self.name}-{i}')
                     _, prediction = outputs.max(dim=1)
 
@@ -142,6 +142,7 @@ class Client:
                     img3 = wandb.Image(labels.numpy())
 
                     data.append([i, img1, img2, img3])
+                    print(f'number of logged row {len(data)}')
+                    self.logger.log_table(key=self.name, columns=columns, data=data)
         
-        print(f'number of logged row {len(data)}')
-        self.logger.log_table(key=self.name, columns=columns, data=data)
+
