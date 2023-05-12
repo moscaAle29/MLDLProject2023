@@ -62,9 +62,9 @@ class Server:
             for key, value in local_param.items():
                 old_value = global_param.get(key, 0)
                 if type(old_value) == int:
-                    new_value = weight * (value.type(torch.FloatTensor).cpu())
+                    new_value = weight * value.type(torch.FloatTensor)
                 else:
-                    new_value = old_value.cpu() + weight * (value.type(torch.FloatTensor).cpu())
+                    new_value = old_value + weight * value.type(torch.FloatTensor)
 
                 global_param[key] = new_value.to('cuda')
         
@@ -102,7 +102,7 @@ class Server:
 
                 print("-------------------------EVALUATION ON TEST DATASET-------------------------")
 
-                self.test(test_phase= False)
+                self.test(test_phase= False, step= r + 1)
 
                 print("FINISH EVALUATION")
 
@@ -117,7 +117,7 @@ class Server:
             c.eval_train(self.metrics['eval_train'])
         
 
-    def test(self, test_phase = True):
+    def test(self, test_phase = True, step = None):
         """
             This method handles the test on the test clients
         """
@@ -131,10 +131,10 @@ class Server:
                 c.test(self.metrics['test_same_dom'])
 
                 test_score = self.metrics['test_same_dom'].get_results()
-                self.logger.log_metrics({'Test Same Dom Mean IoU': test_score['Mean IoU']})
+                self.logger.log_metrics({'Test Same Dom Mean IoU': test_score['Mean IoU']}, step = step)
             else:
                 print("-------------------------DIFF DOM-------------------------")
 
                 c.test(self.metrics['test_diff_dom'])
-                self.logger.log_metrics({'Test Diff Dom Mean IoU': test_score['Mean IoU']})
+                self.logger.log_metrics({'Test Diff Dom Mean IoU': test_score['Mean IoU']}, step = step)
 
