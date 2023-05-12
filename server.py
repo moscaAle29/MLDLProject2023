@@ -62,9 +62,9 @@ class Server:
             for key, value in local_param.items():
                 old_value = global_param.get(key, 0)
                 if type(old_value) == int:
-                    new_value = weight * value.type(torch.FloatTensor)
+                    new_value = weight * value
                 else:
-                    new_value = old_value + weight * value.type(torch.FloatTensor)
+                    new_value = old_value + weight * value
 
                 global_param[key] = new_value.to('cuda')
         
