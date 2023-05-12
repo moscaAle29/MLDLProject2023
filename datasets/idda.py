@@ -29,7 +29,7 @@ class IDDADataset(VisionDataset):
             path_to_label = os.path.join(root, 'labels', f'{filename}.png')
 
             #load image 
-            img = Image.open(path_to_image)
+            img = Image.open(path_to_image).convert('RGB')
             
             #load label 
             label = Image.open(path_to_label)
