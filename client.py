@@ -131,9 +131,9 @@ class Client:
                     print(f'{self.name}-{i}')
                     _, prediction = outputs.max(dim=1)
 
-                    images = Image.fromarray(images.cpu().squeeze(dim = 0).numpy())
-                    prediction = Image.fromarray(prediction.cpu().squeeze(dim = 0).numpy())
-                    labels = Image.fromarray(labels.cpu().squeeze(dim = 0).numpy())
+                    images = Image.fromarray(images.cpu().squeeze(dim = 1).numpy())
+                    prediction = Image.fromarray(prediction.cpu().squeeze(dim = 1).numpy())
+                    labels = Image.fromarray(labels.cpu().squeeze(dim = 1).numpy())
 
                     data.append([i, wandb.Image(images), wandb.Image(prediction),  wandb.Image(labels)])
         
