@@ -127,8 +127,8 @@ class Client:
 
                 self.update_metric(metric, outputs, labels)
 
-                if i % 50 == 0:
-                    print(f'{self.name}-{i}')
+                #if i % 50 == 0:
+                    #print(f'{self.name}-{i}')
                     #_, prediction = outputs.max(dim=1)
 
                     #images = images.cpu()

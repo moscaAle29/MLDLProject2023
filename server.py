@@ -79,9 +79,11 @@ class Server:
         print("-------------------------START TRAINING-------------------------")
 
         for r in range(self.args.num_rounds):
-            print(f'ROUND-{r}')
+            print(f'ROUND-{r+1}')
             
             if r % 10 == 0:
+                print("-------------------------EVALUATION ON TRAIN DATASET-------------------------")
+
                 selected_clients = self.select_clients()
 
                 #evaluate the current model before updating
@@ -96,7 +98,13 @@ class Server:
                 #erase the old results before evaluate the updated model
                 self.metrics['eval_train'].reset()
 
-                print("FINISH TRAIN EVALUATION")
+                print("FINISH EVALUATION")
+
+                print("-------------------------EVALUATION ON TEST DATASET-------------------------")
+
+                self.test(test_phase= False)
+
+                print("FINISH EVALUATION")
 
             #train model for one round with all selected clients and update the model
             self.train_round(selected_clients)
@@ -105,16 +113,16 @@ class Server:
         """
         This method handles the evaluation on the train clients
         """
-        print("-------------------------EVALUATION METRICS-------------------------")
         for c in self.train_clients:
             c.eval_train(self.metrics['eval_train'])
         
 
-    def test(self):
+    def test(self, test_phase = True):
         """
             This method handles the test on the test clients
         """
-        print("-------------------------START TESTING-------------------------")
+        if test_phase:
+            print("-------------------------START TESTING-------------------------")
 
         for c in self.test_clients:
             if c.name == 'test_same_dom':
