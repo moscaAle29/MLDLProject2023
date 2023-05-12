@@ -7,6 +7,8 @@ from torch.utils.data import DataLoader
 
 from utils.utils import HardNegativeMining, MeanReduction
 
+from PIL import Image
+
 import wandb
 
 
@@ -128,7 +130,12 @@ class Client:
                 if i % 50 == 0:
                     print(f'{self.name}-{i}')
                     _, prediction = outputs.max(dim=1)
-                    data.append([i, wandb.Image(images.cpu()), wandb.Image(prediction.cpu()),  wandb.Image(labels.cpu())])
+
+                    images = Image.fromarray(images.cpu().numpy())
+                    prediction = Image.fromarray(prediction.cpu().numpy())
+                    labels = Image.fromarray(labels.cpu().numpy())
+
+                    data.append([i, wandb.Image(images), wandb.Image(prediction),  wandb.Image(labels)])
         
         print(f'number of logged row {len(data)}')
         self.logger.log_table(key=self.name, columns=columns, data=data)
