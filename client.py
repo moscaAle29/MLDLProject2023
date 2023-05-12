@@ -138,7 +138,7 @@ class Client:
                     labels = labels.cpu()
 
                     img1 = wandb.Image(images)
-                    img2 = wandb.Image(prediction.type(torch.long))
+                    img2 = wandb.Image(prediction.numpy())
                     img3 = wandb.Image(labels)
 
                     data.append([i, img1, img2, img3])
