@@ -123,17 +123,18 @@ class Server:
         """
         if test_phase:
             print("-------------------------START TESTING-------------------------")
+            step = self.args.num_rounds + 1
 
         for c in self.test_clients:
             if c.name == 'test_same_dom':
-                print("-------------------------SAME DOM-------------------------")
+                print("SAME DOM")
 
                 c.test(self.metrics['test_same_dom'])
 
                 test_score = self.metrics['test_same_dom'].get_results()
                 self.logger.log_metrics({'Test Same Dom Mean IoU': test_score['Mean IoU']}, step = step)
             else:
-                print("-------------------------DIFF DOM-------------------------")
+                print("DIFF DOM")
 
                 c.test(self.metrics['test_diff_dom'])
                 self.logger.log_metrics({'Test Diff Dom Mean IoU': test_score['Mean IoU']}, step = step)
