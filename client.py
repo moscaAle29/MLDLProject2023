@@ -11,6 +11,8 @@ from PIL import Image
 
 import wandb
 
+import matplotlib.pyplot as plt
+
 
 class Client:
 
@@ -127,13 +129,17 @@ class Client:
 
                 self.update_metric(metric, outputs, labels)
 
-                #if i % 50 == 0:
-                    #print(f'{self.name}-{i}')
-                    #_, prediction = outputs.max(dim=1)
+                if i % 50 == 0:
+                    print(f'{self.name}-{i}')
+                    _, prediction = outputs.max(dim=1)
 
                     #images = images.cpu()
                     #prediction = prediction.cpu()
                     #labels = labels.cpu()
+                    plt.imshow(images.cpu().permute(1, 2, 0))
+                    plt.imshow(prediction.cpu().permute(1, 2, 0))
+                    plt.imshow(labels.cpu().permute(1, 2, 0))
+
 
                     #data.append([i, wandb.Image(images), wandb.Image(prediction),  wandb.Image(labels)])
         

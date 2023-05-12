@@ -6,7 +6,6 @@ import torch
 
 from utils.utils import set_up_logger
 
-
 class Server:
 
     def __init__(self, args, train_clients, test_clients, model, metrics):
