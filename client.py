@@ -138,8 +138,8 @@ class Client:
                     print(labels.size())
 
                     images = torch.squeeze(images, 0)
-                    prediction = torch.squeeze(prediction, 0)
-                    labels = torch.squeeze(labels, 0)
+                    #prediction = torch.squeeze(prediction, 0)
+                    #labels = torch.squeeze(labels, 0)
 
                     print(images.size())
                     print(prediction.size())
