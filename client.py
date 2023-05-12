@@ -135,8 +135,10 @@ class Client:
 
                     images = torch.squeeze(images, 0)
                     images = images.cpu()
+                    
+                    prediction = prediction.cpu()
 
-                    data.append([i, wandb.Image(images.type(torch.long)), wandb.Image(prediction.cpu()),  wandb.Image(labels.cpu())])
+                    data.append([i, wandb.Image(images.type(torch.long)), wandb.Image(prediction.type(torch.long)),  wandb.Image(labels.cpu())])
         
         print(f'number of logged row {len(data)}')
         self.logger.log_table(key=self.name, columns=columns, data=data)
