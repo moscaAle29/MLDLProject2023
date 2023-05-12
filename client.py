@@ -113,8 +113,8 @@ class Client:
         :param metric: StreamMetric object
         """
         #this is used to creat a table for wandb
-        #data = []
-        #columns = ["id", "prediction", "truth"]
+        data = []
+        columns = ["id",'image', "prediction", "truth"]
 
         self.model.eval()
 
@@ -129,28 +129,13 @@ class Client:
 
                 self.update_metric(metric, outputs, labels)
 
-                if i % 50 == 0:
+                if i == 50:
                     print(f'{self.name}-{i}')
                     _, prediction = outputs.max(dim=1)
 
-                    print(images.size())
-                    print(prediction.size())
-                    print(labels.size())
-
                     images = torch.squeeze(images, 0)
-                    #prediction = torch.squeeze(prediction, 0)
-                    #labels = torch.squeeze(labels, 0)
 
-                    print(images.size())
-                    print(prediction.size())
-                    print(labels.size())
-
-                    plt.imshow(images.cpu().permute(1, 2, 0))
-                    plt.imshow(prediction.cpu().permute(1, 2, 0))
-                    plt.imshow(labels.cpu().permute(1, 2, 0))
-
-
-                    #data.append([i, wandb.Image(images), wandb.Image(prediction),  wandb.Image(labels)])
+                    data.append([i, wandb.Image(images.cpu()), wandb.Image(prediction.cpu()),  wandb.Image(labels.cpu())])
         
-        #print(f'number of logged row {len(data)}')
-        #self.logger.log_table(key=self.name, columns=columns, data=data)
+        print(f'number of logged row {len(data)}')
+        self.logger.log_table(key=self.name, columns=columns, data=data)
