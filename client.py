@@ -133,9 +133,10 @@ class Client:
                     print(f'{self.name}-{i}')
                     _, prediction = outputs.max(dim=1)
 
-                    #images = images.cpu()
-                    #prediction = prediction.cpu()
-                    #labels = labels.cpu()
+                    images = torch.squeeze(images, 0)
+                    prediction = torch.squeeze(prediction, 0)
+                    labels = torch.squeeze(labels, 0)
+
                     plt.imshow(images.cpu().squeeze().permute(1, 2, 0))
                     plt.imshow(prediction.cpu().squeeze().permute(1, 2, 0))
                     plt.imshow(labels.cpu().squeeze().permute(1, 2, 0))
