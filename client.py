@@ -131,9 +131,9 @@ class Client:
                     print(f'{self.name}-{i}')
                     _, prediction = outputs.max(dim=1)
 
-                    images = Image.fromarray(torch.squeeze(images.cpu()).numpy())
-                    prediction = Image.fromarray(torch.squeeze(prediction.cpu()).numpy())
-                    labels = Image.fromarray(torch.squeeze(labels.cpu()).numpy())
+                    #images = images.cpu()
+                    #prediction = prediction.cpu()
+                    #labels = labels.cpu()
 
                     data.append([i, wandb.Image(images), wandb.Image(prediction),  wandb.Image(labels)])
         
