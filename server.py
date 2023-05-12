@@ -80,22 +80,23 @@ class Server:
 
         for r in range(self.args.num_rounds):
             print(f'ROUND-{r}')
-
-            selected_clients = self.select_clients()
-
-            #evaluate the current model before updating
-            self.eval_train()
-
-            #get the train evaluation
-            train_score = self.metrics['eval_train'].get_results()
             
-            #log the evaluation
-            self.logger.log_metrics({'Train Mean IoU': train_score['Mean IoU']}, step=r + 1)
-            
-            #erase the old results before evaluate the updated model
-            self.metrics['eval_train'].reset()
+            if r % 10 == 0:
+                selected_clients = self.select_clients()
 
-            print("FINISH TRAIN EVALUATION")
+                #evaluate the current model before updating
+                self.eval_train()
+
+                #get the train evaluation
+                train_score = self.metrics['eval_train'].get_results()
+                
+                #log the evaluation
+                self.logger.log_metrics({'Train Mean IoU': train_score['Mean IoU']}, step=r + 1)
+                
+                #erase the old results before evaluate the updated model
+                self.metrics['eval_train'].reset()
+
+                print("FINISH TRAIN EVALUATION")
 
             #train model for one round with all selected clients and update the model
             self.train_round(selected_clients)

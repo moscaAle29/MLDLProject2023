@@ -35,8 +35,6 @@ class Client:
         prediction = prediction.cpu().numpy()
         metric.update(labels, prediction)
 
-        return labels, prediction
-
     def _get_outputs(self, images):
         if self.args.model == 'deeplabv3_mobilenetv2':
             return self.model(images)['out']
@@ -111,10 +109,11 @@ class Client:
         :param metric: StreamMetric object
         """
         #this is used to creat a table for wandb
-        #data = []
-        #columns = ["id", "image", "prediction", "truth"]
+        data = []
+        columns = ["id", "image", "prediction", "truth"]
 
         self.model.eval()
+
         with torch.no_grad():
             for i, (images, labels) in enumerate(self.test_loader):
 
@@ -128,7 +127,8 @@ class Client:
 
                 if i % 50 == 0:
                     print(f'{self.name}-{i}')
-                    #data.append([i, wandb.Image(images.cpu()), wandb.Image(prediction),  wandb.Image(labels_)])
+                    _, prediction = outputs.max(dim=1)
+                    data.append([i, wandb.Image(images.cpu()), wandb.Image(prediction.cpu()),  wandb.Image(labels.cpu())])
         
-        #print(f'number of logged row {len(data)}')
-        #self.logger.log_table(key=self.name, columns=columns, data=data)
+        print(f'number of logged row {len(data)}')
+        self.logger.log_table(key=self.name, columns=columns, data=data)
