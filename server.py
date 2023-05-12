@@ -135,7 +135,7 @@ class Server:
             else:
                 print("DIFF DOM")
 
-                c.test(self.metrics['test_diff_dom'])
+                c.test(self.metrics['test_diff_dom'],test_phase)
 
                 test_score = self.metrics['test_diff_dom'].get_results()
                 self.logger.log_metrics({'Test Diff Dom Mean IoU': test_score['Mean IoU']}, step = step)

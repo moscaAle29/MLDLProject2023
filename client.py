@@ -13,6 +13,25 @@ import wandb
 
 import matplotlib.pyplot as plt
 
+class_labels = {
+    0: "road",
+    1: "side walk",
+    2: "building",
+    3: "wall",
+    4: "fence",
+    5: "pole",
+    6: "traffict light",
+    7: "traffic sign",
+    8: "vegetation",
+    9: "terrain",
+    10: "sky",
+    11: "person",
+    12: "rider",
+    13: "vehicle",
+    14: "motorcycle",
+    15: "bicycle",
+    255: "others"
+}
 
 class Client:
 
@@ -125,10 +144,10 @@ class Client:
 
                 self.update_metric(metric, outputs, labels)
 
-                if i == 50 and test_phase:
+                if i % 50 == 0 and test_phase:
                     #this is used to creat a table for wandb
-                    data = []
-                    columns = ['image', "prediction", "truth"]
+                    #data = []
+                    #columns = ['image', "prediction", "truth"]
 
                     print(f'{self.name}-{i}')
                     _, prediction = outputs.max(dim=1)
@@ -137,13 +156,19 @@ class Client:
                     prediction = prediction.cpu()
                     labels = labels.cpu()
 
-                    img1 = wandb.Image(images)
-                    img2 = wandb.Image(prediction.numpy())
-                    img3 = wandb.Image(labels.numpy())
+                    img1 = wandb.Image(images, masks = 
+                                       {
+                                           "prediction": {"mask_data" : prediction.numpy(), "class_labels": class_labels},
+                                           "ground_truth": {"mask_data": labels.numpy(), "class_labels": class_labels}
+                                       })
+                    #img2 = wandb.Image(prediction.numpy())
+                    #img3 = wandb.Image(labels.numpy())
 
-                    data.append([img1, img2, img3])
-                    print(f'number of logged row {len(data)}')
-                    self.logger.log_image(key=self.name, images = [img1, img2, img3])
+                    #data.append([img1, img2, img3])
+                    #print(f'number of logged row {len(data)}')
+                    #self.logger.log_image(key=self.name, images = [img1, img2, img3])
                     #self.logger.log_table(key=self.name, columns=columns, data=data)
+                    self.logger.log_image(key=f'{self.name}-{i}', images = [img1])
+
         
 
