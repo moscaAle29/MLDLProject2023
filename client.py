@@ -145,9 +145,9 @@ class Client:
                     print(prediction.size())
                     print(labels.size())
 
-                    plt.imshow(images.cpu().squeeze().permute(1, 2, 0))
-                    plt.imshow(prediction.cpu().squeeze().permute(1, 2, 0))
-                    plt.imshow(labels.cpu().squeeze().permute(1, 2, 0))
+                    plt.imshow(images.cpu().permute(1, 2, 0))
+                    plt.imshow(prediction.cpu().permute(1, 2, 0))
+                    plt.imshow(labels.cpu().permute(1, 2, 0))
 
 
                     #data.append([i, wandb.Image(images), wandb.Image(prediction),  wandb.Image(labels)])
