@@ -139,7 +139,7 @@ class Client:
 
                     img1 = wandb.Image(images)
                     img2 = wandb.Image(prediction.numpy())
-                    img3 = wandb.Image(labels)
+                    img3 = wandb.Image(labels.numpy())
 
                     data.append([i, img1, img2, img3])
         
