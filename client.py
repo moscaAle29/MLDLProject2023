@@ -111,8 +111,8 @@ class Client:
         :param metric: StreamMetric object
         """
         #this is used to creat a table for wandb
-        data = []
-        columns = ["id", "prediction", "truth"]
+        #data = []
+        #columns = ["id", "prediction", "truth"]
 
         self.model.eval()
 
@@ -129,13 +129,13 @@ class Client:
 
                 if i % 50 == 0:
                     print(f'{self.name}-{i}')
-                    _, prediction = outputs.max(dim=1)
+                    #_, prediction = outputs.max(dim=1)
 
                     #images = images.cpu()
                     #prediction = prediction.cpu()
                     #labels = labels.cpu()
 
-                    data.append([i, wandb.Image(prediction),  wandb.Image(labels)])
+                    #data.append([i, wandb.Image(images), wandb.Image(prediction),  wandb.Image(labels)])
         
-        print(f'number of logged row {len(data)}')
-        self.logger.log_table(key=self.name, columns=columns, data=data)
+        #print(f'number of logged row {len(data)}')
+        #self.logger.log_table(key=self.name, columns=columns, data=data)
