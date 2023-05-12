@@ -137,7 +137,11 @@ class Client:
                     prediction = prediction.cpu()
                     labels = labels.cpu()
 
-                    data.append([i, wandb.Image(images), wandb.Image(prediction),  wandb.Image(labels)])
+                    img1 = wandb.Image(images)
+                    img2 = wandb.Image(prediction)
+                    img3 = wandb.Image(labels)
+
+                    data.append([i, img1, img2, img3])
         
         print(f'number of logged row {len(data)}')
         self.logger.log_table(key=self.name, columns=columns, data=data)
