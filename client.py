@@ -112,7 +112,7 @@ class Client:
         """
         #this is used to creat a table for wandb
         data = []
-        columns = ["id", "image", "prediction", "truth"]
+        columns = ["id", "prediction", "truth"]
 
         self.model.eval()
 
@@ -135,7 +135,7 @@ class Client:
                     #prediction = prediction.cpu()
                     #labels = labels.cpu()
 
-                    data.append([i, wandb.Image(images), wandb.Image(prediction),  wandb.Image(labels)])
+                    data.append([i, wandb.Image(prediction),  wandb.Image(labels)])
         
         print(f'number of logged row {len(data)}')
         self.logger.log_table(key=self.name, columns=columns, data=data)
