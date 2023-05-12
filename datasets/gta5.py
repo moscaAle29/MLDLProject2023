@@ -6,8 +6,6 @@ import torch
 from torchvision.datasets import VisionDataset
 import datasets.ss_transforms as tr
 
-class_eval = [255, 2, 4, 255, 11, 5, 0, 0, 1, 8, 13, 3, 7, 6, 255, 255, 15, 14, 12, 9, 10]
-
 class_map = {  
     1: 13,  # ego_vehicle : vehicle
     7: 0,   # road
@@ -65,17 +63,13 @@ class GTA5DataSet(VisionDataset):
 
     @staticmethod
     def get_mapping():
-        classes = class_eval
         mapping = np.zeros((256,), dtype=np.int64) + 255
         mapping2 = np.zeros((256,), dtype=np.int64) + 255
-
-        for i, cl in enumerate(classes):
-            mapping[i] = cl
         
         for i, cl in class_map.items():
-            mapping2[i] = cl
+            mapping[i] = cl
 
-        return lambda x: torch.from_numpy(mapping[mapping2[x]])
+        return lambda x: torch.from_numpy(mapping[x])
 
     def __getitem__(self, index: int) -> Any:
         #transform image

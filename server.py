@@ -84,7 +84,7 @@ class Server:
             selected_clients = self.select_clients()
 
             #evaluate the current model before updating
-            self.eval_train(selected_clients)
+            self.eval_train()
 
             #get the train evaluation
             train_score = self.metrics['eval_train'].get_results()
@@ -100,12 +100,12 @@ class Server:
             #train model for one round with all selected clients and update the model
             self.train_round(selected_clients)
 
-    def eval_train(self, selected_clients):
+    def eval_train(self):
         """
         This method handles the evaluation on the train clients
         """
         print("-------------------------EVALUATION METRICS-------------------------")
-        for c in selected_clients:
+        for c in self.train_clients:
             c.eval_train(self.metrics['eval_train'])
         
 

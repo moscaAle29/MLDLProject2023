@@ -124,7 +124,7 @@ class Client:
 
                 outputs = self.model(images)['out']
 
-                labels_, prediction  = self.update_metric(metric, outputs, labels)
+                self.update_metric(metric, outputs, labels)
 
                 if i % 50 == 0:
                     print(f'{self.name}-{i}')
