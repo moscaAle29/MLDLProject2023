@@ -7,6 +7,8 @@ from torch.utils.data import DataLoader
 
 from utils.utils import HardNegativeMining, MeanReduction
 
+from PIL import Image
+
 import wandb
 
 
@@ -34,8 +36,6 @@ class Client:
         labels = labels.cpu().numpy()
         prediction = prediction.cpu().numpy()
         metric.update(labels, prediction)
-
-        return labels, prediction
 
     def _get_outputs(self, images):
         if self.args.model == 'deeplabv3_mobilenetv2':
@@ -112,9 +112,10 @@ class Client:
         """
         #this is used to creat a table for wandb
         #data = []
-        #columns = ["id", "image", "prediction", "truth"]
+        #columns = ["id", "prediction", "truth"]
 
         self.model.eval()
+
         with torch.no_grad():
             for i, (images, labels) in enumerate(self.test_loader):
 
@@ -126,9 +127,15 @@ class Client:
 
                 self.update_metric(metric, outputs, labels)
 
-                if i % 50 == 0:
-                    print(f'{self.name}-{i}')
-                    #data.append([i, wandb.Image(images.cpu()), wandb.Image(prediction),  wandb.Image(labels_)])
+                #if i % 50 == 0:
+                    #print(f'{self.name}-{i}')
+                    #_, prediction = outputs.max(dim=1)
+
+                    #images = images.cpu()
+                    #prediction = prediction.cpu()
+                    #labels = labels.cpu()
+
+                    #data.append([i, wandb.Image(images), wandb.Image(prediction),  wandb.Image(labels)])
         
         #print(f'number of logged row {len(data)}')
         #self.logger.log_table(key=self.name, columns=columns, data=data)
