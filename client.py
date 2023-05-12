@@ -122,10 +122,10 @@ class Client:
             for i, (images, labels) in enumerate(self.test_loader):
 
                 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-                images = images.to(device, dtype = torch.float32)
+                images_ = images.to(device, dtype = torch.float32)
                 labels = labels.to(device, dtype = torch.long)
 
-                outputs = self.model(images)['out']
+                outputs = self.model(images_)['out']
 
                 self.update_metric(metric, outputs, labels)
 
@@ -134,11 +134,10 @@ class Client:
                     _, prediction = outputs.max(dim=1)
 
                     images = torch.squeeze(images, 0)
-                    images = images.cpu()
-                    
                     prediction = prediction.cpu()
+                    labels = labels.cpu()
 
-                    data.append([i, wandb.Image(images.type(torch.long)), wandb.Image(prediction.type(torch.long)),  wandb.Image(labels.cpu())])
+                    data.append([i, wandb.Image(images), wandb.Image(prediction),  wandb.Image(labels)])
         
         print(f'number of logged row {len(data)}')
         self.logger.log_table(key=self.name, columns=columns, data=data)
