@@ -128,7 +128,7 @@ class Client:
                 if i == 50:
                     #this is used to creat a table for wandb
                     data = []
-                    columns = ["id",'image', "prediction", "truth"]
+                    columns = ['image', "prediction", "truth"]
 
                     print(f'{self.name}-{i}')
                     _, prediction = outputs.max(dim=1)
@@ -141,9 +141,9 @@ class Client:
                     img2 = wandb.Image(prediction.numpy())
                     img3 = wandb.Image(labels.numpy())
 
-                    data.append([i, img1, img2, img3])
+                    data.append([img1, img2, img3])
                     print(f'number of logged row {len(data)}')
-                    self.logger.log_image(key=self.name, images = [img1, img2, img3])
-                    #self.logger.log_table(key=self.name, columns=columns, data=data)
+                    #self.logger.log_image(key=self.name, images = [img1, img2, img3])
+                    self.logger.log_table(key=self.name, columns=columns, data=data)
         
 
