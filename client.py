@@ -107,7 +107,7 @@ class Client:
                 #metric.update(label_trues=labels, label_preds=output)
                 self.update_metric(metric, outputs, labels)
             
-    def test(self, metric):
+    def test(self, metric, test_phase = False):
         """
         This method tests the model on the local dataset of the client.
         :param metric: StreamMetric object
@@ -125,7 +125,7 @@ class Client:
 
                 self.update_metric(metric, outputs, labels)
 
-                if i == 50:
+                if i == 50 and test_phase:
                     #this is used to creat a table for wandb
                     data = []
                     columns = ['image', "prediction", "truth"]
@@ -143,7 +143,7 @@ class Client:
 
                     data.append([img1, img2, img3])
                     print(f'number of logged row {len(data)}')
-                    #self.logger.log_image(key=self.name, images = [img1, img2, img3])
-                    self.logger.log_table(key=self.name, columns=columns, data=data)
+                    self.logger.log_image(key=self.name, images = [img1, img2, img3])
+                    #self.logger.log_table(key=self.name, columns=columns, data=data)
         
 

@@ -128,7 +128,7 @@ class Server:
             if c.name == 'test_same_dom':
                 print("SAME DOM")
 
-                c.test(self.metrics['test_same_dom'])
+                c.test(self.metrics['test_same_dom'], test_phase)
 
                 test_score = self.metrics['test_same_dom'].get_results()
                 self.logger.log_metrics({'Test Same Dom Mean IoU': test_score['Mean IoU']}, step = step)
