@@ -157,10 +157,8 @@ class Client:
                     labels = torch.squeeze(labels.cpu(), 0)
 
                     img1 = wandb.Image(images)
-                    masks = {
-                                "prediction": {"mask_data" : prediction.numpy(), "class_labels": class_labels},
-                                "ground_truth": {"mask_data": labels.numpy(), "class_labels": class_labels}
-                            }
+                    mask_prediction = {"prediction": {"mask_data" : prediction.numpy(), "class_labels": class_labels}}
+                    mask_truth = { "ground_truth": {"mask_data": labels.numpy(), "class_labels": class_labels}}
                     #img2 = wandb.Image(prediction.numpy())
                     #img3 = wandb.Image(labels.numpy())
 
@@ -168,7 +166,9 @@ class Client:
                     #print(f'number of logged row {len(data)}')
                     #self.logger.log_image(key=self.name, images = [img1, img2, img3])
                     #self.logger.log_table(key=self.name, columns=columns, data=data)
-                    self.logger.log_image(key=f'{self.name}-{i}', images = [img1], masks = masks)
+                    self.logger.log_image(key=f'{self.name}-{i}-prediction', images = [img1], masks = mask_prediction)
+                    self.logger.log_image(key=f'{self.name}-{i}-ground_truth', images = [img1], masks = mask_truth)
+
 
         
 
