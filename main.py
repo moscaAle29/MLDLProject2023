@@ -17,6 +17,7 @@ from datasets.femnist import Femnist
 from server import Server
 from utils.args import get_parser
 from datasets.idda import IDDADataset
+from datasets.gta5 import GTA5DataSet
 from models.deeplabv3 import deeplabv3_mobilenetv2
 from utils.stream_metrics import StreamSegMetrics, StreamClsMetrics
 
@@ -79,63 +80,75 @@ def get_transforms(args):
     return train_transforms, test_transforms
 
 
-def read_femnist_dir(data_dir):
-    data = defaultdict(lambda: {})
-    files = os.listdir(data_dir)
-    files = [f for f in files if f.endswith('.json')]
-    for f in files:
-        file_path = os.path.join(data_dir, f)
-        with open(file_path, 'r') as inf:
-            cdata = json.load(inf)
-        data.update(cdata['user_data'])
-    return data
-
-
-def read_femnist_data(train_data_dir, test_data_dir):
-    return read_femnist_dir(train_data_dir), read_femnist_dir(test_data_dir)
-
-
 def get_datasets(args):
 
     train_datasets = []
+    evaluation_datasets = []
+    test_datasets = []
+
     train_transforms, test_transforms = get_transforms(args)
 
+    #determine the training dataset
     if args.dataset == 'idda':
+        #the repositary where data and metadata is stored
         root = 'data/idda'
-        with open(os.path.join(root, 'train.json'), 'r') as f:
-            all_data = json.load(f)
-        for client_id in all_data.keys():
-            train_datasets.append(IDDADataset(root=root, list_samples=all_data[client_id], transform=train_transforms,
-                                              client_name=client_id))
+
+        #create training dataset based on running mode
+        if args.setting == 'federated':
+            with open(os.path.join(root, 'train.json'), 'r') as f:
+                all_data = json.load(f)
+                for client_id in all_data.keys():
+                    train_datasets.append(IDDADataset(root=root, list_samples=all_data[client_id], transform=train_transforms,
+                                                client_name=client_id))
+        elif args.setting == 'centralized':
+            with open(os.path.join(root, 'train.txt'), 'r') as f:
+                train_data = f.read().splitlines()
+                train_datasets.append(IDDADataset(root=root, list_samples=train_data, transform=train_transforms,
+                                                    client_name='single client'))
+        else:
+            raise NotImplementedError
+
+    elif args.dataset == 'gta5':
+        #the repositary where data and metadata is stored
+        root = 'data/gta5'
+        with open(os.path.join(root, 'train.txt'), 'r') as f:
+            train_data = f.read().splitlines()
+            train_datasets.append(GTA5DataSet(root=root, list_samples=train_data, transform=train_transforms,
+                                                client_name='single client'))
+    else:
+        raise NotImplementedError
+    
+    #determine evaluation and testing datasets
+    if args.dataset2 == 'idda':
+        #the repositary where data and metadata is stored
+        root = 'data/idda'
+
+        #if the train dataset is idda and the running mode is federated 
+        #then the evaluation datasets and train datasets are the same
+        if not (args.dataset == 'idda' and args.setting == 'federated'):
+            with open(os.path.join(root, 'train.json'), 'r') as f:
+                all_data = json.load(f)
+                for client_id in all_data.keys():
+                    evaluation_datasets.append(IDDADataset(root=root, list_samples=all_data[client_id], transform=train_transforms,
+                                                client_name=client_id))
+        else:
+            evaluation_datasets = train_datasets
+        
+        #test datasets
         with open(os.path.join(root, 'test_same_dom.txt'), 'r') as f:
             test_same_dom_data = f.read().splitlines()
             test_same_dom_dataset = IDDADataset(root=root, list_samples=test_same_dom_data, transform=test_transforms,
                                                 client_name='test_same_dom')
+            
         with open(os.path.join(root, 'test_diff_dom.txt'), 'r') as f:
             test_diff_dom_data = f.read().splitlines()
             test_diff_dom_dataset = IDDADataset(root=root, list_samples=test_diff_dom_data, transform=test_transforms,
                                                 client_name='test_diff_dom')
         test_datasets = [test_same_dom_dataset, test_diff_dom_dataset]
-
-    elif args.dataset == 'femnist':
-        niid = args.niid
-        train_data_dir = os.path.join('data', 'femnist', 'data', 'niid' if niid else 'iid', 'train')
-        test_data_dir = os.path.join('data', 'femnist', 'data', 'niid' if niid else 'iid', 'test')
-        train_data, test_data = read_femnist_data(train_data_dir, test_data_dir)
-
-        train_transforms, test_transforms = get_transforms(args)
-
-        train_datasets, test_datasets = [], []
-
-        for user, data in train_data.items():
-            train_datasets.append(Femnist(data, train_transforms, user))
-        for user, data in test_data.items():
-            test_datasets.append(Femnist(data, test_transforms, user))
-
     else:
         raise NotImplementedError
 
-    return train_datasets, test_datasets
+    return train_datasets, evaluation_datasets, test_datasets
 
 
 def set_metrics(args):
@@ -156,12 +169,30 @@ def set_metrics(args):
     return metrics
 
 
-def gen_clients(args, train_datasets, test_datasets, model):
+def gen_clients(args, train_datasets, evaluation_datasets, test_datasets, model):
     clients = [[], []]
-    for i, datasets in enumerate([train_datasets, test_datasets]):
-        for ds in datasets:
-            clients[i].append(Client(args, ds, model, test_client=i == 1))
-    return clients[0], clients[1]
+    single_client = None
+
+    #in federated mode, train_datasets and evaluations_datasets are the same
+    if args.setting == 'federated':
+
+        for i, datasets in enumerate([train_datasets, test_datasets]):
+            for ds in datasets:
+                clients[i].append(Client(args, ds, model, test_client=i == 1))
+        return clients[0], clients[1]
+    
+    elif args.setting == 'centralized':
+        #single client on which the model is trained
+        single_client = Client(args, train_datasets, model, test_client= False)
+
+        for i, datasets in enumerate([evaluation_datasets, test_datasets]):
+            for ds in datasets:
+                clients[i].append(Client(args, ds, model, test_client=i == 1))
+
+    else:
+        raise NotImplemented
+    
+    return single_client, clients[0], clients[1]
 
 
 def main():
@@ -175,11 +206,11 @@ def main():
     print('Done.')
 
     print('Generate datasets...')
-    train_datasets, test_datasets = get_datasets(args)
+    train_datasets, evaluation_datasets, test_datasets = get_datasets(args)
     print('Done.')
 
     metrics = set_metrics(args)
-    train_clients, test_clients = gen_clients(args, train_datasets, test_datasets, model)
+    single_client, train_clients, test_clients = gen_clients(args, train_datasets, evaluation_datasets, test_datasets, model)
     server = Server(args, train_clients, test_clients, model, metrics)
     server.train()
     server.test()

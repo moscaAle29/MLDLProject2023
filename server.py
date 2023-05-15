@@ -9,8 +9,9 @@ from utils.utils import set_up_logger
 
 class Server:
 
-    def __init__(self, args, train_clients, test_clients, model, metrics):
+    def __init__(self, args, single_client, train_clients, test_clients, model, metrics):
         self.args = args
+        self.single_client = single_client
         self.train_clients = train_clients
         self.test_clients = test_clients
         self.model = model

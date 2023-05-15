@@ -63,9 +63,7 @@ class GTA5DataSet(VisionDataset):
 
     @staticmethod
     def get_mapping():
-        mapping = np.zeros((256,), dtype=np.int64) + 255
-        mapping2 = np.zeros((256,), dtype=np.int64) + 255
-        
+        mapping = np.zeros((256,), dtype=np.int64) + 255        
         for i, cl in class_map.items():
             mapping[i] = cl
 
