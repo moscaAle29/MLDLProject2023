@@ -6,7 +6,6 @@ import torch
 
 from utils.utils import set_up_logger
 
-
 class Server:
 
     def __init__(self, args, single_client, train_clients, test_clients, model, metrics):
@@ -63,9 +62,9 @@ class Server:
             for key, value in local_param.items():
                 old_value = global_param.get(key, 0)
                 if type(old_value) == int:
-                    new_value = weight * (value.type(torch.FloatTensor).cpu())
+                    new_value = weight * value
                 else:
-                    new_value = old_value.cpu() + weight * (value.type(torch.FloatTensor).cpu())
+                    new_value = old_value + weight * value
 
                 global_param[key] = new_value.to('cuda')
         
@@ -80,23 +79,32 @@ class Server:
         print("-------------------------START TRAINING-------------------------")
 
         for r in range(self.args.num_rounds):
-            print(f'ROUND-{r}')
-
-            selected_clients = self.select_clients()
-
-            #evaluate the current model before updating
-            self.eval_train()
-
-            #get the train evaluation
-            train_score = self.metrics['eval_train'].get_results()
+            print(f'ROUND-{r+1}')
             
-            #log the evaluation
-            self.logger.log_metrics({'Train Mean IoU': train_score['Mean IoU']}, step=r + 1)
-            
-            #erase the old results before evaluate the updated model
-            self.metrics['eval_train'].reset()
+            if r % 10 == 0:
+                print("-------------------------EVALUATION ON TRAIN DATASET-------------------------")
 
-            print("FINISH TRAIN EVALUATION")
+                selected_clients = self.select_clients()
+
+                #evaluate the current model before updating
+                self.eval_train()
+
+                #get the train evaluation
+                train_score = self.metrics['eval_train'].get_results()
+                
+                #log the evaluation
+                self.logger.log_metrics({'Train Mean IoU': train_score['Mean IoU']}, step=r + 1)
+                
+                #erase the old results before evaluate the updated model
+                self.metrics['eval_train'].reset()
+
+                print("FINISH EVALUATION")
+
+                print("-------------------------EVALUATION ON TEST DATASET-------------------------")
+
+                self.test(test_phase= False, step= r + 1)
+
+                print("FINISH EVALUATION")
 
             #train model for one round with all selected clients and update the model
             self.train_round(selected_clients)
@@ -105,28 +113,31 @@ class Server:
         """
         This method handles the evaluation on the train clients
         """
-        print("-------------------------EVALUATION METRICS-------------------------")
         for c in self.train_clients:
             c.eval_train(self.metrics['eval_train'])
         
 
-    def test(self):
+    def test(self, test_phase = True, step = None):
         """
             This method handles the test on the test clients
         """
-        print("-------------------------START TESTING-------------------------")
+        if test_phase:
+            print("-------------------------START TESTING-------------------------")
+            step = self.args.num_rounds + 1
 
         for c in self.test_clients:
             if c.name == 'test_same_dom':
-                print("-------------------------SAME DOM-------------------------")
+                print("SAME DOM")
 
-                c.test(self.metrics['test_same_dom'])
+                c.test(self.metrics['test_same_dom'], test_phase)
 
                 test_score = self.metrics['test_same_dom'].get_results()
-                self.logger.log_metrics({'Test Same Dom Mean IoU': test_score['Mean IoU']})
+                self.logger.log_metrics({'Test Same Dom Mean IoU': test_score['Mean IoU']}, step = step)
             else:
-                print("-------------------------DIFF DOM-------------------------")
+                print("DIFF DOM")
 
-                c.test(self.metrics['test_diff_dom'])
-                self.logger.log_metrics({'Test Diff Dom Mean IoU': test_score['Mean IoU']})
+                c.test(self.metrics['test_diff_dom'],test_phase)
+
+                test_score = self.metrics['test_diff_dom'].get_results()
+                self.logger.log_metrics({'Test Diff Dom Mean IoU': test_score['Mean IoU']}, step = step)
 

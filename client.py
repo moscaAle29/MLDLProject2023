@@ -7,8 +7,31 @@ from torch.utils.data import DataLoader
 
 from utils.utils import HardNegativeMining, MeanReduction
 
+from PIL import Image
+
 import wandb
 
+import matplotlib.pyplot as plt
+
+class_labels = {
+    0: "road",
+    1: "side walk",
+    2: "building",
+    3: "wall",
+    4: "fence",
+    5: "pole",
+    6: "traffict light",
+    7: "traffic sign",
+    8: "vegetation",
+    9: "terrain",
+    10: "sky",
+    11: "person",
+    12: "rider",
+    13: "vehicle",
+    14: "motorcycle",
+    15: "bicycle",
+    255: "others"
+}
 
 class Client:
 
@@ -34,8 +57,6 @@ class Client:
         labels = labels.cpu().numpy()
         prediction = prediction.cpu().numpy()
         metric.update(labels, prediction)
-
-        return labels, prediction
 
     def _get_outputs(self, images):
         if self.args.model == 'deeplabv3_mobilenetv2':
@@ -105,30 +126,49 @@ class Client:
                 #metric.update(label_trues=labels, label_preds=output)
                 self.update_metric(metric, outputs, labels)
             
-    def test(self, metric):
+    def test(self, metric, test_phase = False):
         """
         This method tests the model on the local dataset of the client.
         :param metric: StreamMetric object
         """
-        #this is used to creat a table for wandb
-        #data = []
-        #columns = ["id", "image", "prediction", "truth"]
-
         self.model.eval()
+
         with torch.no_grad():
             for i, (images, labels) in enumerate(self.test_loader):
 
                 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-                images = images.to(device, dtype = torch.float32)
+                images_ = images.to(device, dtype = torch.float32)
                 labels = labels.to(device, dtype = torch.long)
 
-                outputs = self.model(images)['out']
+                outputs = self.model(images_)['out']
 
                 self.update_metric(metric, outputs, labels)
 
-                if i % 50 == 0:
+                if i % 50 == 0 and test_phase:
+                    #this is used to creat a table for wandb
+                    #data = []
+                    #columns = ['image', "prediction", "truth"]
+
                     print(f'{self.name}-{i}')
-                    #data.append([i, wandb.Image(images.cpu()), wandb.Image(prediction),  wandb.Image(labels_)])
+                    _, prediction = outputs.max(dim=1)
+
+                    images = torch.squeeze(images, 0)
+                    prediction = torch.squeeze(prediction.cpu(), 0)
+                    labels = torch.squeeze(labels.cpu(), 0)
+
+                    img1 = wandb.Image(images)
+                    masks = {
+                                "prediction": {"mask_data" : prediction.numpy(), "class_labels": class_labels},
+                                "ground_truth": {"mask_data": labels.numpy(), "class_labels": class_labels}
+                            }
+                    #img2 = wandb.Image(prediction.numpy())
+                    #img3 = wandb.Image(labels.numpy())
+
+                    #data.append([img1, img2, img3])
+                    #print(f'number of logged row {len(data)}')
+                    #self.logger.log_image(key=self.name, images = [img1, img2, img3])
+                    #self.logger.log_table(key=self.name, columns=columns, data=data)
+                    self.logger.log_image(key=f'{self.name}-{i}', images = [img1], masks = [masks])
+
         
-        #print(f'number of logged row {len(data)}')
-        #self.logger.log_table(key=self.name, columns=columns, data=data)
+
