@@ -95,12 +95,10 @@ class Server:
 
         for r in range(self.args.num_rounds):
             print(f'ROUND-{r+1}')
-            
+            selected_clients = self.select_clients()
+
             if (r+1) % 10 == 0:
                 print("-------------------------EVALUATION ON TRAIN DATASET-------------------------")
-
-                selected_clients = self.select_clients()
-
                 #evaluate the current model before updating
                 self.eval_train()
 
