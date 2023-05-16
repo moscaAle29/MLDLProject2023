@@ -4,7 +4,7 @@ from collections import OrderedDict
 import numpy as np
 import torch
 
-from utils.utils import set_up_logger
+from utils.utils import set_up_logger, get_checkpoint_path
 
 class Server:
 
@@ -21,10 +21,25 @@ class Server:
 
         for test_client in test_clients:
             test_client.logger = self.logger
+    
+    def save_model(self, round):
+        path = get_checkpoint_path()
+
+        state = {
+            "round": round,
+            "model_state": self.model_params_dict
+        }
+
+        torch.save(state, path)
 
     def select_clients(self):
-        num_clients = min(self.args.clients_per_round, len(self.train_clients))
-        return np.random.choice(self.train_clients, num_clients, replace=False)
+        if self.args.setting == 'federated':
+            num_clients = min(self.args.clients_per_round, len(self.train_clients))
+            return np.random.choice(self.train_clients, num_clients, replace=False)
+        elif self.args.setting == 'centralized':
+            return [self.single_client]
+        else:
+            raise NotImplemented
 
     def train_round(self, clients):
         """
@@ -81,7 +96,7 @@ class Server:
         for r in range(self.args.num_rounds):
             print(f'ROUND-{r+1}')
             
-            if r % 10 == 0:
+            if (r+1) % 10 == 0:
                 print("-------------------------EVALUATION ON TRAIN DATASET-------------------------")
 
                 selected_clients = self.select_clients()
@@ -95,7 +110,7 @@ class Server:
                 #log the evaluation
                 self.logger.log_metrics({'Train Mean IoU': train_score['Mean IoU']}, step=r + 1)
                 
-                #erase the old results before evaluate the updated model
+                #erase the old results before evaluating the updated model
                 self.metrics['eval_train'].reset()
 
                 print("FINISH EVALUATION")
@@ -103,8 +118,12 @@ class Server:
                 print("-------------------------EVALUATION ON TEST DATASET-------------------------")
 
                 self.test(test_phase= False, step= r + 1)
+                self.metrics['test_same_dom'].reset()
+                self.metrics['test_diff_dom'].reset()
 
                 print("FINISH EVALUATION")
+
+                self.save_model(round = r+1)
 
             #train model for one round with all selected clients and update the model
             self.train_round(selected_clients)

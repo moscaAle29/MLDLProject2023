@@ -1,5 +1,6 @@
 import torch.nn as nn
-from utils.logger import Logger
+from utils.logger import Logger, get_job_name, get_project_name
+import os
 
 
 class HardNegativeMining(nn.Module):
@@ -23,9 +24,16 @@ class MeanReduction:
         return x.mean()
 
 
-def set_up_logger():
+def set_up_logger(args):
 
-    logger = Logger(name = 'fed-idda-task3', project = '2B')
+    logger = Logger(name = get_project_name(args), project = get_project_name(args))
 
     return logger
 
+def get_checkpoint_path(args):
+    if args.setting == 'federated':
+        ckpt_path = os.path.join('checkpoints', args.setting, args.dataset ,args.dataset2, args.algorithm)
+    elif args.setting == 'centralized':
+        ckpt_path = os.path.join('checkpoints', args.setting, args.dataset ,args.dataset2)
+
+    return ckpt_path

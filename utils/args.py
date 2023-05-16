@@ -5,6 +5,7 @@ def get_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', type=int, default=0, help='random seed')
     parser.add_argument('--setting', type=str, choices= ['centralized', 'federated'], required= True, help='run mode')
+    parser.add_argument('--algorithm', type=str, default = 'FedAvg', help='algorithm using in federated setting')
     parser.add_argument('--dataset', type=str, choices=['idda', 'femnist', 'gta5'], required=True, help='dataset name')
     parser.add_argument('--dataset2', type=str, choices=['idda', 'femnist', 'gta5'], required=True, help='dataset name')
     parser.add_argument('--niid', action='store_true', default=False,

@@ -179,11 +179,11 @@ def gen_clients(args, train_datasets, evaluation_datasets, test_datasets, model)
         for i, datasets in enumerate([train_datasets, test_datasets]):
             for ds in datasets:
                 clients[i].append(Client(args, ds, model, test_client=i == 1))
-        return clients[0], clients[1]
     
     elif args.setting == 'centralized':
         #single client on which the model is trained
-        single_client = Client(args, train_datasets, model, test_client= False)
+        for ds in train_datasets:
+            single_client = Client(args, ds, model, test_client= False)
 
         for i, datasets in enumerate([evaluation_datasets, test_datasets]):
             for ds in datasets:
