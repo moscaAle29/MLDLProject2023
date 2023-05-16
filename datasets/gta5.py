@@ -45,8 +45,8 @@ class GTA5DataSet(VisionDataset):
         images, labels = [], []
 
         for i, filename in enumerate(list_samples):
-            path_to_image = os.path.join(root, 'images', f'{filename}.jpg')
-            path_to_label = os.path.join(root, 'labels', f'{filename}.png')
+            path_to_image = os.path.join(root, 'images', f'{filename}')
+            path_to_label = os.path.join(root, 'labels', f'{filename}')
 
             #load image 
             img = Image.open(path_to_image).convert('RGB')
