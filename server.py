@@ -17,7 +17,7 @@ class Server:
         self.metrics = metrics
         self.model_params_dict = copy.deepcopy(self.model.state_dict())
 
-        self.logger = set_up_logger()
+        self.logger = set_up_logger(self.args)
 
         for test_client in test_clients:
             test_client.logger = self.logger
