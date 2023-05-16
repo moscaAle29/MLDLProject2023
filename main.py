@@ -33,7 +33,7 @@ def set_seed(random_seed):
 
 
 def get_dataset_num_classes(dataset):
-    if dataset == 'idda':
+    if dataset == 'idda' or dataset == 'gta5':
         return 16
     if dataset == 'femnist':
         return 62
