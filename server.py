@@ -30,7 +30,7 @@ class Server:
             "model_state": self.model_params_dict
         }
 
-        torch.save(state, path)
+        #torch.save(state, path)
 
     def select_clients(self):
         if self.args.setting == 'federated':
