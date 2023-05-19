@@ -23,7 +23,7 @@ class Server:
             test_client.logger = self.logger
     
     def save_model(self, round):
-        path = get_checkpoint_path()
+        path = get_checkpoint_path(self.args)
 
         state = {
             "round": round,

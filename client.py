@@ -53,7 +53,7 @@ class Client:
 
     @staticmethod
     def update_metric(metric, outputs, labels):
-        _, prediction = outputs.max(dim=1)
+        _, prediction = outputs.max(dim=1) #return values, indices and we only want indices
         labels = labels.cpu().numpy()
         prediction = prediction.cpu().numpy()
         metric.update(labels, prediction)
