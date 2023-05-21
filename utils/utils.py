@@ -1,7 +1,7 @@
 import torch.nn as nn
 from utils.logger import Logger, get_job_name, get_project_name
 import os
-
+import numpy as np
 
 class HardNegativeMining(nn.Module):
 
@@ -26,7 +26,7 @@ class MeanReduction:
 
 def set_up_logger(args):
 
-    logger = Logger(name = get_project_name(args), project = get_project_name(args))
+    logger = Logger(name = get_job_name(args), project = get_project_name(args))
 
     return logger
 
@@ -37,3 +37,7 @@ def get_checkpoint_path(args):
         ckpt_path = os.path.join('checkpoints', args.setting, args.dataset ,args.dataset2)
 
     return ckpt_path
+
+def extract_amp_spectrum(img_np):
+    fft = np.fft.fft2(img_np, axes=(0, 1))
+    return np.abs(fft)

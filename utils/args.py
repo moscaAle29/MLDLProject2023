@@ -8,6 +8,8 @@ def get_parser():
     parser.add_argument('--algorithm', type=str, default = 'FedAvg', help='algorithm using in federated setting')
     parser.add_argument('--dataset', type=str, choices=['idda', 'femnist', 'gta5'], required=True, help='dataset name')
     parser.add_argument('--dataset2', type=str, choices=['idda', 'femnist', 'gta5'], required=True, help='dataset name')
+    parser.add_argument('--domain_adapt', type=str, choices=['fda'], required=False, help='domain adaptation method')
+
     parser.add_argument('--niid', action='store_true', default=False,
                         help='Run the experiment with the non-IID partition (IID by default). Only on FEMNIST dataset.')
     parser.add_argument('--model', type=str, choices=['deeplabv3_mobilenetv2', 'resnet18', 'cnn'], help='model name')
@@ -29,7 +31,9 @@ def get_parser():
     parser.add_argument('--max_scale', type=float, default=2.0, help='define the highest value for scale')
     parser.add_argument('--h_resize', type=int, default=512, help='define the resize value for image H ')
     parser.add_argument('--w_resize', type=int, default=1024, help='define the resize value for image W ')
+
     parser.add_argument('--use_test_resize', action='store_true', default=False, help='whether to use test resize')
+    parser.add_argument('--flip', action='store_true', default=False, help='whether to use test resize')
     parser.add_argument('--jitter', action='store_true', default=False, help='whether to use color jitter')
     parser.add_argument('--cv2_transform', action='store_true', default=False, help='whether to use cv2_transforms')
     parser.add_argument('--rrc_transform', action='store_true', default=False,

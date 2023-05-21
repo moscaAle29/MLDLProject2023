@@ -1,3 +1,4 @@
+import os
 import torch
 import torchvision.transforms.functional as F
 import random
@@ -743,3 +744,53 @@ class RandomScaleRandomCrop(object):
             return tr(img, lbl)
 
         return tr(img)
+
+class TargetStyle(object):
+
+    def __init__(self, path):
+        self.path = path
+
+    def __call__(self, img, lbl=None):
+
+        styles = os.listdir(self.path)
+
+        #randomly get a style
+        amp_target = np.load(os.path.join(self.path, np.random.choice(styles)))
+
+        #do fft on input
+        img_np = np.asanyarray(img, dtype=np.float32)
+        fft_img_np = np.fft.fft2(img_np, axes=(0,1))
+        amp_source, pha_source = np.abs(fft_img_np), np.angle(fft_img_np)
+
+        source = np.fft.fftshift(amp_source, axes=(0, 1))
+        target = np.fft.fftshift(amp_target, axes=(0, 1))
+        alpha = 0.05
+        h, w, _ = source.shape
+        h_l = np.floor(h * alpha).astype(int)
+        w_l = np.floor(w * alpha).astype(int)
+
+        # center
+        c_h = np.floor(h / 2.0).astype(int)
+        c_w = np.floor(w / 2.0).astype(int)
+
+        h1 = c_h - h_l
+        h2 = c_h + h_l + 1
+        w1 = c_w - w_l
+        w2 = c_w + w_l + 1
+
+        lamb = np.random.uniform(size=1)
+
+        source[h1:h2, w1:w2, :] = source[h1:h2, w1:w2, :] * (1 - lamb) + target[h1:h2, w1:w2, :] * lamb
+        source = np.fft.ifftshift(source, axes=(0, 1))
+
+        fft_local_ = source * np.exp(1j * pha_source)
+        local_in_trg = np.fft.ifft2(fft_local_, axes=(0, 1))
+        local_in_trg = np.abs(local_in_trg)
+        local_in_trg = local_in_trg.astype(np.uint8)
+
+        img = Image.fromarray(local_in_trg)
+
+        return img, lbl
+     
+
+

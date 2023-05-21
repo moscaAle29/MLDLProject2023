@@ -13,6 +13,10 @@ def get_job_name(args):
         if args.algorithm == 'SiloBN':
             job_name += "SBN_"
         job_name += f"cl{args.clients_per_round}_e{args.num_epochs}_"
+    if args.flip:
+        job_name += "flip_"
+    if args.rrc_transform:
+        job_name += "rrc_"
     if args.dom_gen is not None:
         job_name += f"{args.dom_gen}_"
     if args.dd_batch_size:
@@ -23,6 +27,9 @@ def get_job_name(args):
         job_name += "jitter_"
     if args.use_test_resize:
         job_name += "testResize_"
+    if args.domain_adapt is not None:
+        job_name += f"{args.domain_adapt}_"
+
 
     #job_name += f"lr{args.lr}_rs{args.random_seed}_{args.clients_type}"
     #if args.framework == 'federated':
