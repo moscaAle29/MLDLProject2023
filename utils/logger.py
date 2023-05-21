@@ -17,10 +17,10 @@ def get_job_name(args):
         job_name += "flip_"
     if args.rrc_transform:
         job_name += "rrc_"
-    if args.dom_gen is not None:
-        job_name += f"{args.dom_gen}_"
-    if args.dd_batch_size:
-        job_name += f"ddbs{args.dd_batch_size}_"
+    #if args.dom_gen is not None:
+    #    job_name += f"{args.dom_gen}_"
+    #if args.dd_batch_size:
+    #    job_name += f"ddbs{args.dd_batch_size}_"
     if args.cv2_transform:
         job_name += "cv2_"
     if args.jitter:
