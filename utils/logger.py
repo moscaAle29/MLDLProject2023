@@ -12,7 +12,11 @@ def get_job_name(args):
     if args.setting == 'federated':
         if args.algorithm == 'SiloBN':
             job_name += "SBN_"
-        job_name += f"cl{args.clients_per_round}_e{args.num_epochs}_"
+        job_name += f"{args.setting}_cl{args.clients_per_round}_e{args.num_epochs}_"
+
+    if args.setting == 'centralized':
+        job_name += f"{args.setting}_cl{1}_e{args.num_epochs}_"
+
     if args.flip:
         job_name += "flip_"
     if args.rrc_transform:
