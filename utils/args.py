@@ -42,6 +42,8 @@ def get_parser():
                         help='whether to use random scale random crop')
     parser.add_argument('--cts_norm', action='store_true', default=False,
                         help='whether to use cts normalization otherwise 0.5 for mean and std')
+    parser.add_argument('--random_rotation', action='store_true', default=False, help='do random rotation on img')
+
     
 
     return parser

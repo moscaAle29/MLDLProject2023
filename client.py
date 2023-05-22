@@ -102,7 +102,7 @@ class Client:
         (by calling the run_epoch method for each local epoch of training)
         :return: length of the local dataset, copy of the model parameters
         """
-        optimizer = optim.SGD(self.model.parameters(), lr=0.001, momentum=0.9)
+        optimizer = optim.SGD(self.model.parameters(), lr=self.args.lr, momentum=0.9)
         self.model.train()
 
         for epoch in range(self.args.num_epochs):

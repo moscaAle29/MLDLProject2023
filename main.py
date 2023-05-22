@@ -94,15 +94,18 @@ def get_transforms(args):
     if args.model == 'deeplabv3_mobilenetv2':
 
         augmentations = []
-        
-        if args.flip is True:
-            augmentations.append(sstr.RandomHorizontalFlip())
 
         if args.rrc_transform is True:
             size = (args.h_resize, args.w_resize)
             scale = (args.min_scale, args.max_scale)
 
             augmentations.append(sstr.RandomResizedCrop(size = size, scale = scale))
+ 
+        if args.flip is True:
+            augmentations.append(sstr.RandomHorizontalFlip())
+
+        if args.random_rotation is True:
+            augmentations.append(sstr.RandomRotation(30))
         
         if args.domain_adapt == 'fda':
             dir = create_style(args)
