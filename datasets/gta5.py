@@ -49,7 +49,7 @@ class GTA5DataSet(VisionDataset):
             path_to_label = os.path.join(root, 'labels', f'{filename}')
 
             #load image 
-            img = Image.open(path_to_image).convert('RGB')
+            img = Image.open(path_to_image)
             
             #load label 
             label = Image.open(path_to_label)
@@ -72,7 +72,7 @@ class GTA5DataSet(VisionDataset):
     def __getitem__(self, index: int) -> Any:
         #transform image
         if self.transform is not None:
-            image, label = self.transform(self.images[index], self.labels[index])
+            image, label = self.transform(self.images[index].convert('RGB'), self.labels[index])
 
         #transform label
         if self.target_transform is not None:
