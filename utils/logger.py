@@ -21,6 +21,8 @@ def get_job_name(args):
         job_name += "flip_"
     if args.rrc_transform:
         job_name += "rrc_"
+    if args.random_rotation:
+        job_name += "random_rotation_"
     #if args.dom_gen is not None:
     #    job_name += f"{args.dom_gen}_"
     #if args.dd_batch_size:
