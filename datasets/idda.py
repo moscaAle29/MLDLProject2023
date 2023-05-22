@@ -33,6 +33,12 @@ class IDDADataset(VisionDataset):
             
             #load label 
             label = Image.open(path_to_label)
+
+            #transform
+            if self.transform is not None:
+                img, label = self.transform(img, label)
+            if self.target_transform is not None:
+                label = self.target_transform(label)
   
 
             images.append(img)
@@ -52,14 +58,14 @@ class IDDADataset(VisionDataset):
 
     def __getitem__(self, index: int) -> Any:
         #transform image
-        if self.transform is not None:
-            image, label = self.transform(self.images[index], self.labels[index])
+        #if self.transform is not None:
+        #    image, label = self.transform(self.images[index], self.labels[index])
 
         #transform label
-        if self.target_transform is not None:
-            label = self.target_transform(label)
+        #if self.target_transform is not None:
+        #    #label = self.target_transform(label)
 
-        return image, label
+        return self.images[index], self.labels[index]
 
     def __len__(self) -> int:
         return len(self.list_samples)
