@@ -5,6 +5,7 @@ import numpy as np
 import torch
 
 from utils.utils import set_up_logger, get_checkpoint_path
+import os
 
 class Server:
 
@@ -23,8 +24,11 @@ class Server:
             test_client.logger = self.logger
     
     def save_model(self, round):
-        path = get_checkpoint_path(self.args)
+        dir = get_checkpoint_path(self.args)
+        name = f'round{round}'
 
+        path = os.path.join(dir, name)
+        
         state = {
             "round": round,
             "model_state": self.model_params_dict
