@@ -35,6 +35,9 @@ def get_checkpoint_path(args):
         ckpt_path = os.path.join('checkpoints', args.setting, args.dataset ,args.dataset2, args.algorithm)
     elif args.setting == 'centralized':
         ckpt_path = os.path.join('checkpoints', args.setting, args.dataset ,args.dataset2)
+    
+    if not os.path.exists(ckpt_path):
+        os.makedirs(ckpt_path)
 
     return ckpt_path
 
