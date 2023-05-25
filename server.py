@@ -25,10 +25,10 @@ class Server:
     
     def save_model(self, round):
         dir = get_checkpoint_path(self.args)
-        name = f'round{round}'
+        name = f'round{round}.ckpt'
 
         path = os.path.join(dir, name)
-        
+
         state = {
             "round": round,
             "model_state": self.model_params_dict
