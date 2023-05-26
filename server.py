@@ -18,6 +18,9 @@ class Server:
         self.metrics = metrics
         self.model_params_dict = copy.deepcopy(self.model.state_dict())
 
+        if self.self_supervised is True:
+            self.teacher_params_dict = copy.deepcopy(self.model.state_dict())
+
         self.logger = set_up_logger(self.args)
 
         for test_client in test_clients:
@@ -58,6 +61,9 @@ class Server:
             print(f'client-{client.name}')
 
             client.model.load_state_dict(self.model_params_dict)
+
+            if self.args.self_supervised is True:
+                client.set_teacher(self.teacher_params_dict)
 
             update = client.train()
             updates.append(update)

@@ -21,8 +21,10 @@ from datasets.gta5 import GTA5DataSet
 from models.deeplabv3 import deeplabv3_mobilenetv2
 from utils.stream_metrics import StreamSegMetrics, StreamClsMetrics
 from utils.utils import extract_amp_spectrum
+from utils.logger import Logger
 
 from PIL import Image
+
 
 
 def set_seed(random_seed):
@@ -260,8 +262,22 @@ def main():
 
     print(f'Initializing model...')
     model = model_init(args)
+    
+    if args.self_supervised is True:
+        print('Loading pretrained model...')
+        load_path = os.path.join('checkpoints', 'centralized', 'gta5', 'idda', f'round{args.round}.ckpt')
+        run_path = args.run_path
+        root = '.'
+
+        Logger.restore(name = load_path, run_path = run_path, root = root)
+
+        checkpoint = torch.load(load_path)
+        model.load_state_dict(checkpoint["model_state"])
+
+    
     model.cuda()
     print('Done.')
+
 
     print('Generate datasets...')
     train_datasets, evaluation_datasets, test_datasets = get_datasets(args)

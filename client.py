@@ -5,7 +5,7 @@ from torch import optim, nn
 from collections import defaultdict
 from torch.utils.data import DataLoader
 
-from utils.utils import HardNegativeMining, MeanReduction
+from utils.utils import HardNegativeMining, MeanReduction, SelfTrainingLoss
 
 from PIL import Image
 
@@ -43,10 +43,17 @@ class Client:
         self.train_loader = DataLoader(self.dataset, batch_size=self.args.bs, shuffle=True, drop_last=True) \
             if not test_client else None
         self.test_loader = DataLoader(self.dataset, batch_size=1, shuffle=False)
-        self.criterion = nn.CrossEntropyLoss(ignore_index=255, reduction='none')
+        if self.args.self_supervised is True:
+            self.criterion = SelfTrainingLoss()
+        else:
+            self.criterion = nn.CrossEntropyLoss(ignore_index=255, reduction='none')
+
         self.reduction = HardNegativeMining() if self.args.hnm else MeanReduction()
 
+        #this is used for test clients, dont delete it
         self.logger = None
+
+        self.teacher_params_dict = None
 
     def __str__(self):
         return self.name
@@ -57,6 +64,9 @@ class Client:
         labels = labels.cpu().numpy()
         prediction = prediction.cpu().numpy()
         metric.update(labels, prediction)
+    
+    def set_teacher(self, dict):
+        self.teacher_params_dict = dict
 
     def _get_outputs(self, images):
         if self.args.model == 'deeplabv3_mobilenetv2':
@@ -68,6 +78,22 @@ class Client:
     def calc_losses(self, images, labels):
 
         outputs = self.model(images)['out']
+
+        if self.args.self_supervised is True:
+            #store current params of model
+            current_params = self.model.state_dict()
+
+            #load teacher params to calculate loss
+            self.model.load_state_dict(self.teacher_params_dict)
+            self.criterion.set_teacher(self.model)
+            loss_tot = self.reduction(self.criterion(outputs, labels), labels)
+
+            #load current params back
+            self.model.load_state_dict(current_params)
+
+            return loss_tot, outputs
+
+
         loss_tot = self.reduction(self.criterion(outputs, labels), labels)
         #dict_calc_losses = {'loss_tot' : loss_tot}
 
