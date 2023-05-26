@@ -35,6 +35,7 @@ class Server:
         }
 
         torch.save(state, path)
+        self.logger.save(path)
 
     def select_clients(self):
         if self.args.setting == 'federated':

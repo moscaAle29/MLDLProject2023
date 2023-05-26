@@ -4,6 +4,13 @@ import wandb
 class Logger(pytorch_lightning.loggers.WandbLogger):
     def __init__(self, project, name, log_model = False, save_dir = None):
         super(Logger, self).__init__(name = name, project = project, log_model = log_model, save_dir = save_dir)
+    
+    def save(self, obj):
+        return wandb.save(obj)
+
+    @staticmethod
+    def restore(name, run_path, root):
+        return wandb.restore(name=name, run_path=run_path, root=root)
 
 
 
