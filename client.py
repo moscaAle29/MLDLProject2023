@@ -86,7 +86,7 @@ class Client:
             #load teacher params to calculate loss
             self.model.load_state_dict(self.teacher_params_dict)
             self.criterion.set_teacher(self.model)
-            loss_tot = self.reduction(self.criterion(outputs, labels), labels)
+            loss_tot = self.reduction(self.criterion(outputs, images), labels)
 
             #load current params back
             self.model.load_state_dict(current_params)
