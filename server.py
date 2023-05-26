@@ -112,6 +112,9 @@ class Server:
             print(f'ROUND-{r+1}')
             selected_clients = self.select_clients()
 
+            #train model for one round with all selected clients and update the model
+            self.train_round(selected_clients)
+
             if (r+1) % 10 == 0:
                 print("-------------------------EVALUATION ON TRAIN DATASET-------------------------")
                 #evaluate the current model before updating
@@ -137,9 +140,16 @@ class Server:
                 print("FINISH EVALUATION")
 
                 self.save_model(round = r+1)
+            
+            #if self_supervised is True, update teacher after some intervals or never update
+            if self.args.self_supervised is True:
+                if self.args.update_interval != 0:
+                    if (r+1) % self.args.update_interval == 0:
+                        self.teacher.load_state_dict(self.model_params_dict)
 
-            #train model for one round with all selected clients and update the model
-            self.train_round(selected_clients)
+
+
+
 
     def eval_train(self):
         """
