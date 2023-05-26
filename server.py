@@ -18,7 +18,7 @@ class Server:
         self.metrics = metrics
         self.model_params_dict = copy.deepcopy(self.model.state_dict())
 
-        if self.self_supervised is True:
+        if self.args.self_supervised is True:
             self.teacher_params_dict = copy.deepcopy(self.model.state_dict())
 
         self.logger = set_up_logger(self.args)
