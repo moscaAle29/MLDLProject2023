@@ -77,6 +77,8 @@ class Client:
     
     def calc_losses(self, images, labels):
 
+        imgs2 = images.clone().detach()
+
         outputs = self.model(images)['out']
 
         if self.args.self_supervised is True:
@@ -86,7 +88,7 @@ class Client:
             #load teacher params to calculate loss
             self.model.load_state_dict(self.teacher_params_dict)
             self.criterion.set_teacher(self.model)
-            loss_tot = self.reduction(self.criterion(outputs, images), labels)
+            loss_tot = self.reduction(self.criterion(outputs, imgs2), labels)
 
             #load current params back
             self.model.load_state_dict(current_params)
