@@ -265,6 +265,7 @@ def main():
     
     if args.self_supervised is True:
         print('Loading pretrained model...')
+        teacher = model_init(args)
         load_path = os.path.join('checkpoints', 'centralized', 'gta5', 'idda', f'round{args.round}.ckpt')
         run_path = args.run_path
         root = '.'
@@ -273,6 +274,9 @@ def main():
 
         checkpoint = torch.load(load_path)
         model.load_state_dict(checkpoint["model_state"])
+        teacher.load_state_dict(checkpoint["model_state"])
+
+        teacher.cuda()
 
     
     model.cuda()
@@ -288,6 +292,11 @@ def main():
         args, train_datasets, evaluation_datasets, test_datasets, model)
     server = Server(args, single_client, train_clients,
                     test_clients, model, metrics)
+    
+    if args.self_supervised is True:
+        server.set_teacher(teacher)
+
+
     server.train()
     server.test()
 

@@ -81,8 +81,9 @@ class SelfTrainingLoss(nn.Module):
 
     def forward(self, pred, imgs=None):
         pseudo_lab = self.get_pseudo_lab(pred, imgs)
-        loss = F.cross_entropy(input=pred, target=pseudo_lab, ignore_index=self.ignore_index, reduction='none')
-        return loss.mean() * self.lambda_selftrain
+        #loss = F.cross_entropy(input=pred, target=pseudo_lab, ignore_index=self.ignore_index, reduction='none')
+        #return loss.mean() * self.lambda_selftrain
+        return pseudo_lab
         
 
 

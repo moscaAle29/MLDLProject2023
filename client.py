@@ -44,16 +44,15 @@ class Client:
             if not test_client else None
         self.test_loader = DataLoader(self.dataset, batch_size=1, shuffle=False)
         if self.args.self_supervised is True:
-            self.criterion = SelfTrainingLoss()
-        else:
-            self.criterion = nn.CrossEntropyLoss(ignore_index=255, reduction='none')
+            self.pseudo_label_generator = SelfTrainingLoss()
+
+        self.criterion = nn.CrossEntropyLoss(ignore_index=255, reduction='none')
 
         self.reduction = HardNegativeMining() if self.args.hnm else MeanReduction()
 
         #this is used for test clients, dont delete it
         self.logger = None
 
-        self.teacher_params_dict = None
 
     def __str__(self):
         return self.name
@@ -65,8 +64,8 @@ class Client:
         prediction = prediction.cpu().numpy()
         metric.update(labels, prediction)
     
-    def set_teacher(self, dict):
-        self.teacher_params_dict = dict
+    def set_teacher(self, teacher):
+        self.pseudo_label_generator.set_teacher(teacher)
 
     def _get_outputs(self, images):
         if self.args.model == 'deeplabv3_mobilenetv2':
@@ -83,20 +82,8 @@ class Client:
 
         if self.args.self_supervised is True:
             #store current params of model
-            current_params = self.model.state_dict()
+            labels = self.pseudo_label_generator(outputs, images)
 
-            #load teacher params to calculate loss
-            self.model.load_state_dict(self.teacher_params_dict)
-            self.criterion.set_teacher(self.model)
-            #loss_tot = self.reduction(self.criterion(outputs, imgs2), labels)
-            loss_tot = self.criterion(outputs, images)
-
-
-            #load current params back
-            self.model.load_state_dict(current_params)
-            self.model.train()
-
-            return loss_tot, outputs
 
 
         loss_tot = self.reduction(self.criterion(outputs, labels), labels)

@@ -17,14 +17,18 @@ class Server:
         self.model = model
         self.metrics = metrics
         self.model_params_dict = copy.deepcopy(self.model.state_dict())
-
-        if self.args.self_supervised is True:
-            self.teacher_params_dict = copy.deepcopy(self.model.state_dict())
+        self.teacher_params_dict = None
+        self.teacher = None
 
         self.logger = set_up_logger(self.args)
 
         for test_client in test_clients:
             test_client.logger = self.logger
+    
+    def set_teacher(self, teacher):
+        self.teacher = teacher
+        self.teacher_params_dict = copy.deepcopy(self.teacher.state_dict())
+
     
     def save_model(self, round):
         dir = get_checkpoint_path(self.args)
@@ -63,7 +67,7 @@ class Server:
             client.model.load_state_dict(self.model_params_dict)
 
             if self.args.self_supervised is True:
-                client.set_teacher(self.teacher_params_dict)
+                client.set_teacher(self.teacher)
 
             update = client.train()
             updates.append(update)
