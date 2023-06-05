@@ -13,7 +13,6 @@ import datasets.np_transforms as nptr
 
 from torch import nn
 from client import Client
-from datasets.femnist import Femnistg
 from server import Server
 from utils.args import get_parser
 from datasets.idda import IDDADataset
