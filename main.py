@@ -19,7 +19,7 @@ from utils.args import get_parser
 from datasets.idda import IDDADataset
 from datasets.gta5 import GTA5DataSet
 from models.deeplabv3 import deeplabv3_mobilenetv2
-from models.PIDNet.models.pidnet import pidnet, get_seg_model
+from ..PIDNet.models.pidnet import get_seg_model
 from utils.stream_metrics import StreamSegMetrics, StreamClsMetrics
 from utils.utils import extract_amp_spectrum
 from utils.logger import Logger
