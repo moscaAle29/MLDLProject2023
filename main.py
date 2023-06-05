@@ -13,20 +13,18 @@ import datasets.np_transforms as nptr
 
 from torch import nn
 from client import Client
-from datasets.femnist import Femnist
+from datasets.femnist import Femnistg
 from server import Server
 from utils.args import get_parser
 from datasets.idda import IDDADataset
 from datasets.gta5 import GTA5DataSet
 from models.deeplabv3 import deeplabv3_mobilenetv2
-from ..PIDNet.models.pidnet import get_seg_model
+from ..PIDNet.models import pidnet
 from utils.stream_metrics import StreamSegMetrics, StreamClsMetrics
 from utils.utils import extract_amp_spectrum
 from utils.logger import Logger
 
 from PIL import Image
-
-
 
 def set_seed(random_seed):
     random.seed(random_seed)
@@ -60,7 +58,7 @@ def model_init(args):
             # cfg="./models/PIDNet/configs/cityscapes/pidnet_large_cityscapes.yaml"
             # cfg="./models/PIDNet/configs/cityscapes/pidnet_medium_cityscapes.yaml"
             cfg="./models/PIDNet/configs/cityscapes/pidnet_small_cityscapes.yaml"
-            return get_seg_model(cfg,imgnet_pretrained=True)
+            return pidnet.get_seg_model(cfg,imgnet_pretrained=True)
     raise NotImplementedError
 
 
