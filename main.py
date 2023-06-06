@@ -18,7 +18,7 @@ from utils.args import get_parser
 from datasets.idda import IDDADataset
 from datasets.gta5 import GTA5DataSet
 from models.deeplabv3 import deeplabv3_mobilenetv2
-from ..PIDNet.models import pidnet
+#from ..PIDNet.models import pidnet
 from utils.stream_metrics import StreamSegMetrics, StreamClsMetrics
 from utils.utils import extract_amp_spectrum
 from utils.logger import Logger
@@ -57,7 +57,7 @@ def model_init(args):
             # cfg="./models/PIDNet/configs/cityscapes/pidnet_large_cityscapes.yaml"
             # cfg="./models/PIDNet/configs/cityscapes/pidnet_medium_cityscapes.yaml"
             cfg="./models/PIDNet/configs/cityscapes/pidnet_small_cityscapes.yaml"
-            return pidnet.get_seg_model(cfg,imgnet_pretrained=True)
+ #           return pidnet.get_seg_model(cfg,imgnet_pretrained=True)
     raise NotImplementedError
 
 
