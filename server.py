@@ -5,7 +5,10 @@ import numpy as np
 import torch
 
 from utils.utils import set_up_logger, get_checkpoint_path
+from sklearn.cluster import KMeans
 import os
+
+K_KMEANS=7
 
 class Server:
 
@@ -16,11 +19,12 @@ class Server:
         self.test_clients = test_clients
         self.model = model
         self.metrics = metrics
-        self.model_params_dict = copy.deepcopy(self.model.state_dict())
+        self.base_model_params_dict = copy.deepcopy(self.model.state_dict())
+        self.cluster_model_param_dict=[copy.deepcopy(self.base_model_params_dict)]*K_KMEANS
         self.teacher_params_dict = None
         self.teacher = None
 
-        self.logger = set_up_logger(self.args)
+        self.logger = set_up_logger(self.args)      
 
         for test_client in test_clients:
             test_client.logger = self.logger
@@ -38,7 +42,8 @@ class Server:
 
         state = {
             "round": round,
-            "model_state": self.model_params_dict
+            "model_state": self.base_model_params_dict,
+            "clustering_weights": self.cluster_model_param_dict
         }
 
         torch.save(state, path)
@@ -64,7 +69,7 @@ class Server:
         for client in clients:
             print(f'client-{client.name}')
 
-            client.model.load_state_dict(self.model_params_dict)
+            client.model.load_state_dict(self.base_model_params_dict)
 
             if self.args.self_supervised is True:
                 client.set_teacher(self.teacher)
@@ -72,7 +77,36 @@ class Server:
             update = client.train()
             updates.append(update)
 
-        self.aggregate(updates)
+        #self.aggregate(updates)
+        self.aggregate_cluster(updates=updates)
+        
+    def train_round_clustering(self, clients):
+        """
+            This method trains the model with the dataset of the clients. It handles the training at single round level
+            :param clients: list of all the clients to train
+            :return: model updates gathered from the clients, to be aggregated
+        """
+        updates = []
+
+        for client in clients:
+            print(f'client-{client.name}')
+
+            cluster=client.get_cluster()
+            
+            if cluster != None:
+                client.model.load_state_dict(self.cluster_model_param_dict[cluster])
+            else:
+                client.model.load_state_dict(self.base_model_params_dict)
+
+            if self.args.self_supervised is True:
+                client.set_teacher(self.teacher)
+
+            update = client.train()
+            updates.append(update)
+            self.aggregate_cluster(updates=updates, cluster=client.get_cluster())
+
+        #self.aggregate(updates)
+        
 
     def aggregate(self, updates):
         """
@@ -99,16 +133,42 @@ class Server:
                 global_param[key] = new_value.to('cuda')
         
         self.model.load_state_dict(global_param)
-        self.model_params_dict = copy.deepcopy(self.model.state_dict())
+        self.base_model_params_dict = copy.deepcopy(self.model.state_dict())
 
+    def aggregate_cluster(self, updates,cluster,client):
+        """
+        This method handles the FedAvg aggregation
+        :param updates: updates received from the clients
+        :return: aggregated parameters
+        """
+        global_num_samples = 0
+        global_param = OrderedDict()
+        for local_num_samples,_ in updates:
+            global_num_samples += local_num_samples
+        for local_num_samples, local_param in updates:
+            weight = local_num_samples / global_num_samples
+            for key, value in local_param.items():
+                old_value = global_param.get(key, 0)
+                if type(old_value) == int:
+                    new_value = weight * value
+                else:
+                    new_value = old_value + weight * value
+                global_param[key] = new_value.to('cuda')
+        client.update
+        self.cluster_model_param_dict[cluster] = copy.deepcopy(global_param)
+        #self.model.load_state_dict(global_param)
 
     def train(self):
         """
         This method orchestrates the training the evals and tests at rounds level
         """
         print("-------------------------START TRAINING-------------------------")
-
+        
         for r in range(self.args.num_rounds):
+            
+            for c  in self.train_clients:
+                c.update_cluster_weights(self.cluster_model_param_dict)
+                
             print(f'ROUND-{r+1}')
             selected_clients = self.select_clients()
 
@@ -145,11 +205,7 @@ class Server:
             if self.args.self_supervised is True:
                 if self.args.update_interval != 0:
                     if (r+1) % self.args.update_interval == 0:
-                        self.teacher.load_state_dict(self.model_params_dict)
-
-
-
-
+                        self.teacher.load_state_dict(self.base_model_params_dict)
 
     def eval_train(self):
         """
