@@ -4,9 +4,6 @@ import torch
 from torch import optim, nn
 from collections import defaultdict
 from torch.utils.data import DataLoader
-import numpy as np
-from sklearn.cluster import KMeans
-from statistics import mode 
 
 from utils.utils import HardNegativeMining, MeanReduction, SelfTrainingLoss
 
@@ -38,21 +35,17 @@ class_labels = {
 
 class Client:
 
-    def __init__(self, args, dataset, model, test_client=False, clustering_model=None):
+    def __init__(self, args, dataset, model, test_client=False):
         self.args = args
         self.dataset = dataset
         self.name = self.dataset.client_name
         self.model = model
-        self.cluster_model_param_dict=None
-        self.cluster=None
         self.train_loader = DataLoader(self.dataset, batch_size=self.args.bs, shuffle=True, drop_last=True) \
             if not test_client else None
         self.test_loader = DataLoader(self.dataset, batch_size=1, shuffle=False)
         if self.args.self_supervised is True:
             self.pseudo_label_generator = SelfTrainingLoss()
 
-        self.clustering_model=clustering_model
-        
         self.criterion = nn.CrossEntropyLoss(ignore_index=255, reduction='none')
 
         self.reduction = HardNegativeMining() if self.args.hnm else MeanReduction()
@@ -60,27 +53,10 @@ class Client:
         #this is used for test clients, dont delete it
         self.logger = None
 
+
     def __str__(self):
         return self.name
-    
-    def update_cluster_weights(self,weights):
-        self.cluster_model_param_dict=weights
-        
-    def get_cluster(self):
-        return self.cluster
-    #-------------------------------------------------------------------
-    #function from the professor's paper
-    # def _extract_style(self, img_np):
-    #     fft_np = np.fft.fft2(img_np, axes=(-2, -1))
-    #     amp = np.abs(fft_np)
-    #     amp_shift = np.fft.fftshift(amp, axes=(-2, -1))
-    #     if self.sizes is None:
-    #         self.sizes = self.compute_size(amp_shift)
-    #     h1, h2, w1, w2 = self.sizes
-    #     style = amp_shift[:, h1:h2, w1:w2]
-    #     return style
-    #-------------------------------------------------------------------            
-    
+
     @staticmethod
     def update_metric(metric, outputs, labels):
         _, prediction = outputs.max(dim=1) #return values, indices and we only want indices
@@ -117,27 +93,20 @@ class Client:
     
     def generate_update(self):
         return copy.deepcopy(self.model.state_dict())
-    
-    def get_avg_cluster(self,images):
-        result=self.clustering_model.predict(images)
-        return mode(result)
 
     def run_epoch(self, cur_epoch, optimizer):
         """
         This method locally trains the model with the dataset of the client. It handles the training at mini-batch level
         :param cur_epoch: current epoch of training
         :param optimizer: optimizer used for the local training
-        """         
+        """
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         #dict_all_epoch_losses = defaultdict(lambda: 0)
 
         for cur_step, (images, labels) in enumerate(self.train_loader):
             images = images.to(device, dtype = torch.float32)
             labels = labels.to(device, dtype = torch.long)
-            
-            if self.clustering_model != None:
-                self.cluster=self.get_avg_cluster(self.extract_style(images))
-                
+
             optimizer.zero_grad()
 
             loss_tot, outputs = self.calc_losses(images, labels)
