@@ -22,12 +22,8 @@ from models.deeplabv3 import deeplabv3_mobilenetv2
 from utils.stream_metrics import StreamSegMetrics, StreamClsMetrics
 from utils.utils import extract_amp_spectrum
 from utils.logger import Logger
-from sklearn.cluster import KMeans
 
 from PIL import Image
-
-K_KMEANS=7
-kmeans=KMeans(n_clusters = K_KMEANS)
 
 def set_seed(random_seed):
     random.seed(random_seed)
@@ -122,8 +118,6 @@ def get_transforms(args):
 
         augmentations.append(sstr.ToTensor())
         augmentations.append(sstr.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]))
-        
-        random.shuffle(augmentations)
 
         train_transforms = sstr.Compose(augmentations)
 
@@ -145,7 +139,9 @@ def get_transforms(args):
         raise NotImplementedError
     return train_transforms, test_transforms
 
+
 def get_datasets(args):
+
     train_datasets = []
     evaluation_datasets = []
     test_datasets = []
@@ -171,7 +167,7 @@ def get_datasets(args):
                                                   client_name='single client'))
         else:
             raise NotImplementedError
-    
+
     elif args.dataset == 'gta5':
         # the repositary where data and metadata is stored
         root = 'data/gta5'
@@ -179,9 +175,6 @@ def get_datasets(args):
             train_data = f.read().splitlines()
             train_datasets.append(GTA5DataSet(root=root, list_samples=train_data, transform=train_transforms,
                                               client_name='single client'))
-            kmeans.fit(create_style(train_datasets[-1].images))
-            
-            
     # #TODO: implement cityscapes dataset
     # elif args.dataset == 'cityscapes':
     #     # the repositary where data and metadata is stored
@@ -256,16 +249,16 @@ def gen_clients(args, train_datasets, evaluation_datasets, test_datasets, model)
 
         for i, datasets in enumerate([train_datasets, test_datasets]):
             for ds in datasets:
-                clients[i].append(Client(args, ds, model, test_client=i == 1,clustering_model=kmeans))
+                clients[i].append(Client(args, ds, model, test_client=i == 1))
 
     elif args.setting == 'centralized':
         # single client on which the model is trained
         for ds in train_datasets:
-            single_client = Client(args, ds, model, test_client=False,clustering_model=kmeans)
+            single_client = Client(args, ds, model, test_client=False)
 
         for i, datasets in enumerate([evaluation_datasets, test_datasets]):
             for ds in datasets:
-                clients[i].append(Client(args, ds, model, test_client=i == 1,clustering_model=kmeans))
+                clients[i].append(Client(args, ds, model, test_client=i == 1))
 
     else:
         raise NotImplemented
