@@ -3,9 +3,13 @@ from collections import OrderedDict
 
 import numpy as np
 import torch
+import torch.nn as nn
 
 from utils.utils import set_up_logger, get_checkpoint_path
 import os
+
+count_train=0
+E=1
 
 class Server:
 
@@ -59,6 +63,8 @@ class Server:
             :param clients: list of all the clients to train
             :return: model updates gathered from the clients, to be aggregated
         """
+        global count_train, E
+        count_train+=1
         updates = []
 
         for client in clients:
@@ -72,9 +78,13 @@ class Server:
             update = client.train()
             updates.append(update)
 
-        self.aggregate(updates)
+        if self.args.fedBN is True:
+            if count_train % E == 0:
+                self.fedBN(updates)
+        else:
+            self.fedAvg(updates)
 
-    def aggregate(self, updates):
+    def fedAvg(self, updates):
         """
         This method handles the FedAvg aggregation
         :param updates: updates received from the clients
@@ -97,6 +107,21 @@ class Server:
                     new_value = old_value + weight * value
 
                 global_param[key] = new_value.to('cuda')
+        
+        self.model.load_state_dict(global_param)
+        self.model_params_dict = copy.deepcopy(self.model.state_dict())
+
+    def fedBN(self, updates):
+        global_param = OrderedDict()
+        n_clients=len(updates)
+        
+        for key in self.model_params_dict:
+            if 'bn' not in key: 
+                tmp = self.model_params_dict.get(key, 0)
+                
+                for client_id in range(n_clients):
+                    tmp+=1/client_id * updates[client_id][key]
+                global_param[key] = tmp.to('cuda')
         
         self.model.load_state_dict(global_param)
         self.model_params_dict = copy.deepcopy(self.model.state_dict())
