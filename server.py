@@ -113,16 +113,24 @@ class Server:
 
     def fedBN(self, updates):
         global_param = OrderedDict()
-        n_clients=len(updates)
+        global_num_samples=0
         
-        for key in self.model_params_dict:
-            if 'bn' not in key: 
-                tmp = self.model_params_dict.get(key, 0)
-                
-                for client_id in range(n_clients):
-                    tmp+=1/client_id * updates[client_id][key]
-                global_param[key] = tmp.to('cuda')
+        for local_num_samples,_ in updates:
+            global_num_samples += local_num_samples
+
+        for local_num_samples, local_param in updates:
+            weight = local_num_samples / global_num_samples
         
+            for key, value in local_param:
+                if 'bn' not in key: 
+                    old_value = global_param.get(key, 0)
+                    if type(old_value) == int:
+                        new_value = weight * value
+                    else:
+                        new_value = old_value + weight * value
+
+                    global_param[key] = new_value.to('cuda')
+            
         self.model.load_state_dict(global_param)
         self.model_params_dict = copy.deepcopy(self.model.state_dict())
 
