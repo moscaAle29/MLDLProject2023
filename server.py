@@ -117,7 +117,7 @@ class Server:
         
         for key in self.model_params_dict:
             if 'bn' not in key: 
-                tmp = self.model_params_dict.get(key, 0)
+                tmp = float(self.model_params_dict.get(key, 0))
                 
                 for client_id in range(n_clients):
                     tmp+=1/n_clients * updates[client_id][1][key]
