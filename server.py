@@ -117,10 +117,11 @@ class Server:
         
         for key in self.model_params_dict:
             if 'bn' not in key: 
-                tmp = float(self.model_params_dict.get(key, 0))
+                tmp = torch.zeros_like(self.model_params_dict[key], dtype=torch.float32)
                 
                 for client_id in range(n_clients):
-                    tmp+=1/n_clients * updates[client_id][1][key]
+                    #print(type(updates[client_id][1][key]))
+                    tmp+=torch.float32(1/n_clients) * torch.float32(updates[client_id][1][key])
                 global_param[key] = tmp.to('cuda')
         
         self.model.load_state_dict(global_param)
