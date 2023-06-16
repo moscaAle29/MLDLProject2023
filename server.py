@@ -78,7 +78,7 @@ class Server:
             update = client.train()
             updates.append(update)
 
-        if self.args.fedBN is True:
+        if self.args.FedBN is True:
             if count_train % E == 0:
                 self.fedBN(updates)
         else:
