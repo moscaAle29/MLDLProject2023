@@ -103,6 +103,9 @@ def get_transforms(args):
 
             augmentations.append(sstr.RandomResizedCrop(size = size, scale = scale))
  
+        if args.canny is True:
+            augmentations.append(sstr.Canny())
+
         if args.flip is True:
             augmentations.append(sstr.RandomHorizontalFlip())
 

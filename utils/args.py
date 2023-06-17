@@ -38,6 +38,7 @@ def get_parser():
     parser.add_argument('--use_test_resize', action='store_true', default=False, help='whether to use test resize')
     parser.add_argument('--flip', action='store_true', default=False, help='whether to use test resize')
     parser.add_argument('--jitter', action='store_true', default=False, help='whether to use color jitter')
+    parser.add_argument('--canny', action='store_true', default=False, help='whether to use canny algorithm')
     parser.add_argument('--cv2_transform', action='store_true', default=False, help='whether to use cv2_transforms')
     parser.add_argument('--rrc_transform', action='store_true', default=False,
                         help='whether to use random resized crop')

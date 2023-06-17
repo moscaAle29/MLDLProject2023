@@ -8,6 +8,7 @@ import collections
 from PIL import Image
 import warnings
 import math
+import cv2
 
 _pil_interpolation_to_str = {
     Image.NEAREST: 'PIL.Image.NEAREST',
@@ -792,5 +793,45 @@ class TargetStyle(object):
 
         return img, lbl
      
+class Canny(object):
+    """Use Canny Edge detection to compute the contours of the objects in the image.
+    Args:
+        p (float): probability of the image being flipped. Default value is 0.5
+    """
 
+    def __init__(self, p=0.5, algorithm="standard", kernel_dim=1):
+        self.p = p
+        self.algorithm=algorithm
+        self.kernel_dim=kernel_dim
+
+    def __call__(self, img, lbl=None):
+        """
+        Args:
+            img (PIL Image): Image to be flipped.
+        Returns:
+            PIL Image: Randomly flipped image.
+        """
+        assert self.algorithm not in ["standard", "otsu"], "The selected algorithm is not implemented, please select another one"
+        
+        if self.algorithm=="standard":
+            gray_img = np.array(cv2.cvtColor(img,cv2.COLOR_RGB2GRAY))
+            #apply binary threshold
+            thresh = cv2.adaptiveThreshold(gray_img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,2023,2)
+            #get the edges using canny
+            edges = cv2.dilate(cv2.Canny(thresh, 0, 255), None)
+        elif self.algorithm=="otsu":   
+            gray_img = np.array(cv2.cvtColor(img,cv2.COLOR_RGB2GRAY))
+            #blur image using Gaussian Blur
+            blur = cv2.GaussianBlur(gray_img,(self.kernel_dim, self.kernel_dim), 0)
+            ret3,thresh = cv2.threshold(blur,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+            #get the edges using canny
+            edges = cv2.dilate(cv2.Canny(thresh, 0, 255), None)
+        
+        if lbl is not None:
+            return edges, lbl
+        else:
+            return edges
+
+    def __repr__(self):
+        return self.__class__.__name__ + '(p={})'.format(self.p)
 
