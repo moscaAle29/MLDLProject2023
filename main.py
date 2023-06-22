@@ -262,10 +262,20 @@ def main():
 
     print(f'Initializing model...')
     model = model_init(args)
-    
+
+    #initialize teacher if setting is semi_supervised
+    teacher = None
     if args.self_supervised is True:
-        print('Loading pretrained model...')
         teacher = model_init(args)
+
+    #initialize teacher_kd if knowledge distillation is applied
+    teacher_kd = None
+    if args.kd is True:
+        teacher_kd = model_init(args)
+    
+    #load pre_trained model if specified
+    if args.load_pretrained is True:
+        print('Loading pretrained model...')
         load_path = os.path.join('checkpoints', 'centralized', 'gta5', 'idda', f'round{args.round}.ckpt')
         run_path = args.run_path
         root = '.'
@@ -275,8 +285,10 @@ def main():
         checkpoint = torch.load(load_path)
         model.load_state_dict(checkpoint["model_state"])
         teacher.load_state_dict(checkpoint["model_state"])
+        teacher_kd.load_state_dict(checkpoint["model_state"])
 
         teacher.cuda()
+        teacher_kd.cuda()
 
     
     model.cuda()
@@ -295,6 +307,9 @@ def main():
     
     if args.self_supervised is True:
         server.set_teacher(teacher)
+    
+    if args.kd is True:
+        server.set_teacher_kd(teacher_kd)
 
 
     server.train()

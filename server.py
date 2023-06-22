@@ -19,6 +19,8 @@ class Server:
         self.model_params_dict = copy.deepcopy(self.model.state_dict())
         self.teacher_params_dict = None
         self.teacher = None
+        self.teacher_kd_params_dict = None
+        self.teacher_kd = None
 
         self.logger = set_up_logger(self.args)
 
@@ -28,6 +30,10 @@ class Server:
     def set_teacher(self, teacher):
         self.teacher = teacher
         self.teacher_params_dict = copy.deepcopy(self.teacher.state_dict())
+
+    def set_teacher_kd(self, teacher_kd):
+        self.teacher_kd = teacher_kd
+        self.teacher_kd_params_dict = copy.deepcopy(self.teacher_kd.state_dict())
 
     
     def save_model(self, round):

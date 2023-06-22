@@ -5,7 +5,7 @@ from torch import optim, nn
 from collections import defaultdict
 from torch.utils.data import DataLoader
 
-from utils.utils import HardNegativeMining, MeanReduction, SelfTrainingLoss
+from utils.utils import HardNegativeMining, MeanReduction, SelfTrainingLoss, KnowledgeDistillationLoss
 
 from PIL import Image
 
@@ -50,8 +50,14 @@ class Client:
 
         self.reduction = HardNegativeMining() if self.args.hnm else MeanReduction()
 
+        self.kd_loss = None
+        if args.kd is True:
+            self.kd_loss = KnowledgeDistillationLoss()
+
         #this is used for test clients, dont delete it
         self.logger = None
+
+        self.teacher_kd = None
 
 
     def __str__(self):
@@ -67,6 +73,9 @@ class Client:
     def set_teacher(self, teacher):
         self.pseudo_label_generator.set_teacher(teacher)
 
+    def set_teacher_kd(self, teacher_kd):
+        self.teacher_kd = teacher_kd
+
     def _get_outputs(self, images):
         if self.args.model == 'deeplabv3_mobilenetv2':
             return self.model(images)['out']
@@ -76,19 +85,31 @@ class Client:
     
     def calc_losses(self, images, labels):
 
-        #imgs2 = images.clone().detach()
+        loss_tot = None
 
         outputs = self.model(images)['out']
 
         if self.args.self_supervised is True:
-            #store current params of model
-            labels = self.pseudo_label_generator(outputs, images)
-
-
-
+            pseudo_labels = self.pseudo_label_generator(None, images)
+            labels = pseudo_labels
+        
         loss_tot = self.reduction(self.criterion(outputs, labels), labels)
-        #dict_calc_losses = {'loss_tot' : loss_tot}
+        
+        if self.args.kd is True:
+            kd_outputs = self.teacher_kd(images)['out']
 
+            #generating mask for kd loss
+            pseudo_labels = self.pseudo_label_generator(None, images, model=self.teacher_kd_model)
+            mask = torch.ones(pseudo_labels.shape).double().to(self.device)
+            mask = torch.where(pseudo_labels != 255, mask, 0.) if pseudo_labels is not None else None
+
+            #calculating kd_loss
+            kd_loss = self.kd_loss(outputs, kd_outputs, pred_labels=None, mask=mask)
+
+            #add kd_loss to the loss_tot
+            loss_tot += self.args.lambda_kd * kd_loss
+
+        #dict_calc_losses = {'loss_tot' : loss_tot}
         return loss_tot, outputs
     
     def generate_update(self):
