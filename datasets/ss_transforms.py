@@ -813,16 +813,17 @@ class Canny(object):
         """
         assert self.algorithm in ["standard", "otsu"], "The selected algorithm is not implemented, please select another one"
         
+        img = np.asarray(img, dtype=np.uint8)
+        gray_img = np.asarray(cv2.cvtColor(img,cv2.COLOR_RGB2GRAY),dtype=np.uint8)
+        
         if self.algorithm=="standard":
             
-            gray_img = np.array(cv2.cvtColor(img,cv2.COLOR_RGB2GRAY),dtype=np.uint8)
             #apply binary threshold
             thresh = cv2.adaptiveThreshold(gray_img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,2023,2)
             #get the edges using canny
             edges = cv2.dilate(cv2.Canny(thresh, 0, 255), None)
             
         elif self.algorithm=="otsu":   
-            gray_img = np.array(cv2.cvtColor(img,cv2.COLOR_RGB2GRAY),dtype=np.uint8)
             #blur image using Gaussian Blur
             blur = cv2.GaussianBlur(gray_img,(self.kernel_dim, self.kernel_dim), 0)
             ret3,thresh = cv2.threshold(blur,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)

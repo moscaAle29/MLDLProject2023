@@ -1,6 +1,7 @@
 import copy
 import torch
 
+from datasets.ss_transforms import Canny
 from torch import optim, nn
 from collections import defaultdict
 from torch.utils.data import DataLoader
@@ -104,7 +105,14 @@ class Client:
         #dict_all_epoch_losses = defaultdict(lambda: 0)
 
         for cur_step, (images, labels) in enumerate(self.train_loader):
-            images = images.to(device, dtype = torch.float32)
+            if self.args.canny is True:
+                canny_transform= Canny()
+                new_images=[]
+                for img in images:
+                    new_images.append(canny_transform(img))
+                images=new_images.to(device, dtype=torch.float32)
+            else:
+                images = images.to(device, dtype = torch.float32)
             labels = labels.to(device, dtype = torch.long)
 
             optimizer.zero_grad()
