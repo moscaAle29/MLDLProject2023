@@ -12,7 +12,7 @@ def get_parser():
 
     parser.add_argument('--niid', action='store_true', default=False,
                         help='Run the experiment with the non-IID partition (IID by default). Only on FEMNIST dataset.')
-    parser.add_argument('--model', type=str, choices=['deeplabv3_mobilenetv2', 'resnet18', 'cnn'], help='model name')
+    parser.add_argument('--model', type=str, choices=['deeplabv3_mobilenetv2', 'resnet18', 'cnn', 'pidnet'], help='model name')
     parser.add_argument('--num_rounds', type=int, help='number of rounds')
     parser.add_argument('--num_epochs', type=int, help='number of local epochs')
     parser.add_argument('--clients_per_round', type=int, help='number of clients trained per round')

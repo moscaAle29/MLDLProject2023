@@ -208,6 +208,3 @@ class Client:
                     #self.logger.log_image(key=self.name, images = [img1, img2, img3])
                     #self.logger.log_table(key=self.name, columns=columns, data=data)
                     self.logger.log_image(key=f'{self.name}-{i}', images = [img1], masks = [masks])
-
-        
-

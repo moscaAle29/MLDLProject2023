@@ -13,19 +13,17 @@ import datasets.np_transforms as nptr
 
 from torch import nn
 from client import Client
-from datasets.femnist import Femnist
 from server import Server
 from utils.args import get_parser
 from datasets.idda import IDDADataset
 from datasets.gta5 import GTA5DataSet
 from models.deeplabv3 import deeplabv3_mobilenetv2
+#from ..PIDNet.models import pidnet
 from utils.stream_metrics import StreamSegMetrics, StreamClsMetrics
 from utils.utils import extract_amp_spectrum
 from utils.logger import Logger
 
 from PIL import Image
-
-
 
 def set_seed(random_seed):
     random.seed(random_seed)
@@ -55,9 +53,11 @@ def model_init(args):
         model.fc = nn.Linear(
             in_features=512, out_features=get_dataset_num_classes(args.dataset))
         return model
-    if args.model == 'cnn':
-        # TODO: missing code here!
-        raise NotImplementedError
+    if args.model == 'pidnet':
+            # cfg="./models/PIDNet/configs/cityscapes/pidnet_large_cityscapes.yaml"
+            # cfg="./models/PIDNet/configs/cityscapes/pidnet_medium_cityscapes.yaml"
+            cfg="./models/PIDNet/configs/cityscapes/pidnet_small_cityscapes.yaml"
+ #           return pidnet.get_seg_model(cfg,imgnet_pretrained=True)
     raise NotImplementedError
 
 
@@ -175,9 +175,20 @@ def get_datasets(args):
             train_data = f.read().splitlines()
             train_datasets.append(GTA5DataSet(root=root, list_samples=train_data, transform=train_transforms,
                                               client_name='single client'))
+    # #TODO: implement cityscapes dataset
+    # elif args.dataset == 'cityscapes':
+    #     # the repositary where data and metadata is stored
+    #     root = 'data/cityscapes'
+    #     with open(os.path.join(root, 'train.txt'), 'r') as f:
+    #         train_data = f.read().splitlines()
+    #         train_datasets.append(GTA5DataSet(root=root, list_samples=train_data, transform=train_transforms,
+    #                                           client_name='single client'))
     else:
         raise NotImplementedError
-
+    #shuffle dataset
+    # if train_datasets!= None:
+    #     random.shuffle(train_datasets)
+        
     # determine evaluation and testing datasets
     if args.dataset2 == 'idda':
         # the repositary where data and metadata is stored
@@ -281,6 +292,10 @@ def main():
         root = '.'
 
         Logger.restore(name = load_path, run_path = run_path, root = root)
+        if args.model == 'deeplabv3_mobilenetv2':
+            checkpoint = torch.load(load_path)
+            model.load_state_dict(checkpoint["model_state"])
+            teacher.load_state_dict(checkpoint["model_state"])
 
         checkpoint = torch.load(load_path)
         model.load_state_dict(checkpoint["model_state"])
