@@ -111,7 +111,7 @@ def get_transforms(args):
         
         if args.domain_adapt == 'fda':
             dir = create_style(args)
-            augmentations.append(sstr.TargetStyle(dir))
+            augmentations.append(sstr.TargetStyle(dir, args.fda_alpha))
         
         if args.jitter is True:
             augmentations.append(sstr.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4))

@@ -43,6 +43,7 @@ def get_parser():
     parser.add_argument('--cts_norm', action='store_true', default=False,
                         help='whether to use cts normalization otherwise 0.5 for mean and std')
     parser.add_argument('--random_rotation', action='store_true', default=False, help='do random rotation on img')
+    parser.add_argument('--fda_alpha', type=float, default=0.05, help='window size fda')
 
     
     # ||| Checkpoint Options ||| 

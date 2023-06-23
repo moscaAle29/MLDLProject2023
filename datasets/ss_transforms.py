@@ -747,8 +747,9 @@ class RandomScaleRandomCrop(object):
 
 class TargetStyle(object):
 
-    def __init__(self, path):
+    def __init__(self, path, alpha = 0.05):
         self.path = path
+        self.alpha = alpha
 
     def __call__(self, img, lbl=None):
 
@@ -764,7 +765,7 @@ class TargetStyle(object):
 
         source = np.fft.fftshift(amp_source, axes=(0, 1))
         target = np.fft.fftshift(amp_target, axes=(0, 1))
-        alpha = 0.05
+        alpha = self.alpha
         h, w, _ = source.shape
         h_l = np.floor(h * alpha).astype(int)
         w_l = np.floor(w * alpha).astype(int)
