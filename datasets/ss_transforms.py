@@ -5,7 +5,7 @@ import random
 import numbers
 import numpy as np
 import collections
-from PIL import Image
+from PIL import Image, ImageFilter
 import warnings
 import math
 import cv2
@@ -813,27 +813,32 @@ class Canny(object):
         """
         assert self.algorithm in ["standard", "otsu"], "The selected algorithm is not implemented, please select another one"
         
-        img = np.asarray(img, dtype=np.uint8)
-        gray_img = np.asarray(cv2.cvtColor(img,cv2.COLOR_RGB2GRAY),dtype=np.uint8)
+        #img = np.asarray(img, dtype=np.uint8)
+        #gray_img = np.asarray(cv2.cvtColor(img,cv2.COLOR_RGB2GRAY),dtype=np.uint8)
         
-        if self.algorithm=="standard":
+        if self.algorithm.lower()=="standard":
+            image = img.convert("L")
+            image = image.filter(ImageFilter.FIND_EDGES)
+            # #apply binary threshold
+            # thresh = cv2.adaptiveThreshold(gray_img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,2023,2)
+            # #get the edges using canny
+            # edges = cv2.dilate(cv2.Canny(thresh, 0, 255), None)
             
-            #apply binary threshold
-            thresh = cv2.adaptiveThreshold(gray_img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,2023,2)
-            #get the edges using canny
-            edges = cv2.dilate(cv2.Canny(thresh, 0, 255), None)
-            
-        elif self.algorithm=="otsu":   
-            #blur image using Gaussian Blur
-            blur = cv2.GaussianBlur(gray_img,(self.kernel_dim, self.kernel_dim), 0)
-            ret3,thresh = cv2.threshold(blur,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-            #get the edges using canny
-            edges = cv2.dilate(cv2.Canny(thresh, 0, 255), None)
+        # elif self.algorithm.lower()=="otsu":   
+        #     #blur image using Gaussian Blur
+        #     blur = cv2.GaussianBlur(gray_img,(self.kernel_dim, self.kernel_dim), 0)
+        #     ret3,thresh = cv2.threshold(blur,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        #     #get the edges using canny
+        #     edges = cv2.dilate(cv2.Canny(thresh, 0, 255), None)
+        
+        # elif self.algorithm.lower()=="sobel":
+        #     img_blur = cv2.GaussianBlur(img,(3,3), SigmaX=0, SigmaY=0)
+        #     cv2.Sobel(src=img_blur, ddepth=cv2.CV_64F, dx=1, dy=1, ksize=5)
         
         if lbl is not None:
-            return edges, lbl
+            return image, lbl
         else:
-            return edges
+            return image
 
     def __repr__(self):
         return self.__class__.__name__ + '(p={})'.format(self.p)
