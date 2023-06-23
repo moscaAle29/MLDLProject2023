@@ -97,6 +97,11 @@ def get_transforms(args):
 
         augmentations = []
 
+        if args.domain_adapt == 'fda':
+            dir = create_style(args)
+            augmentations.append(sstr.TargetStyle(dir, args.fda_alpha))
+
+
         if args.rrc_transform is True:
             size = (args.h_resize, args.w_resize)
             scale = (args.min_scale, args.max_scale)
@@ -108,11 +113,7 @@ def get_transforms(args):
 
         if args.random_rotation is True:
             augmentations.append(sstr.RandomRotation(30))
-        
-        if args.domain_adapt == 'fda':
-            dir = create_style(args)
-            augmentations.append(sstr.TargetStyle(dir, args.fda_alpha))
-        
+                
         if args.jitter is True:
             augmentations.append(sstr.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4))
 
