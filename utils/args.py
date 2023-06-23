@@ -44,18 +44,25 @@ def get_parser():
                         help='whether to use cts normalization otherwise 0.5 for mean and std')
     parser.add_argument('--random_rotation', action='store_true', default=False, help='do random rotation on img')
 
+
     
     # ||| Checkpoint Options ||| 
     parser.add_argument('--load_pretrained', action = 'store_true', default=False , help='load pre_trained w specified by run path and round')
-    parser.add_argument('--self_supervised', action = 'store_true', default= False, help = 'task 4')
     parser.add_argument('--run_path', required=False, help='where to find checkpoints in wandb')
     parser.add_argument('--round', type = int, default= 100, help = 'round at which model state is stored')
-    parser.add_argument('--update_interval', type=int, default=0, help='update teacher after n rounds, n= 0 means never')
 
+
+    # ||| Clustering ||| 
+    parser.add_argument('--clustering', type=str, choices=['ladd', 'vae'], required=False, help='specify clustering scheme')
+
+    # ||| Teachers |||
+    parser.add_argument('--self_supervised', action = 'store_true', default= False, help = 'task 4')
+    parser.add_argument('--update_interval', type=int, default=0, help='update teacher after n rounds, n= 0 means never')
     parser.add_argument('--kd', action = 'store_true', default=False , help='apply knowledge distillation')
     parser.add_argument('--lambda_kd', type=float, default=10.0, help='knowledge distillation rate')
-
-
+    parser.add_argument('--swat', action = 'store_true', default=False , help='apply SWAt')
+    parser.add_argument('--swa_start', type = int, default= 20, help = 'swa start')
+    parser.add_argument('--swa_step', type = int, default= 1, help = 'swa step')
 
 
     return parser

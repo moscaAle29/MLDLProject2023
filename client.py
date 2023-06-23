@@ -59,6 +59,8 @@ class Client:
 
         self.teacher_kd = None
 
+        self.cluster_id = None
+
 
     def __str__(self):
         return self.name

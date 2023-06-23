@@ -1,3 +1,4 @@
+import copy
 import os
 import json
 from collections import defaultdict
@@ -24,6 +25,10 @@ from utils.utils import extract_amp_spectrum
 from utils.logger import Logger
 
 from PIL import Image
+
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+
 
 def set_seed(random_seed):
     random.seed(random_seed)
@@ -54,9 +59,9 @@ def model_init(args):
             in_features=512, out_features=get_dataset_num_classes(args.dataset))
         return model
     if args.model == 'pidnet':
-            # cfg="./models/PIDNet/configs/cityscapes/pidnet_large_cityscapes.yaml"
-            # cfg="./models/PIDNet/configs/cityscapes/pidnet_medium_cityscapes.yaml"
-            cfg="./models/PIDNet/configs/cityscapes/pidnet_small_cityscapes.yaml"
+        # cfg="./models/PIDNet/configs/cityscapes/pidnet_large_cityscapes.yaml"
+        # cfg="./models/PIDNet/configs/cityscapes/pidnet_medium_cityscapes.yaml"
+        cfg = "./models/PIDNet/configs/cityscapes/pidnet_small_cityscapes.yaml"
  #           return pidnet.get_seg_model(cfg,imgnet_pretrained=True)
     raise NotImplementedError
 
@@ -64,7 +69,7 @@ def model_init(args):
 def create_style(args):
     if args.dataset2 == 'idda':
         root = 'data/idda'
-        dir = os.path.join(root, 'bank_A')
+        dir = os.path.join(root, 'train')
 
         if not os.path.isdir(dir):
             os.makedirs(dir)
@@ -87,7 +92,60 @@ def create_style(args):
                 style = np.mean(np.array(fft_magnitudes), axis=0)
 
                 np.save(file=os.path.join(dir, client_id), arr=style)
-        
+
+        return dir
+    
+def create_style_test(args):
+    if args.dataset2 == 'idda':
+        root = 'data/idda'
+        dir = os.path.join(root, 'test')
+
+        if not os.path.isdir(dir):
+            os.makedirs(dir)
+
+        with open(os.path.join(root, 'test_same_dom.txt'), 'r') as f:
+            test_same_dom_data = f.read().splitlines()
+
+            all_data = {'test_same_dome': test_same_dom_data}
+
+            for client_id in all_data.keys():
+                img_names = all_data[client_id]
+                fft_magnitudes = []
+
+                for filename in img_names:
+                    path_to_image = os.path.join(
+                        root, 'images', f'{filename}.jpg')
+                    img = Image.open(path_to_image)
+                    img_np = np.asanyarray(img, dtype=np.float32)
+
+                    fft_magnitudes.append(extract_amp_spectrum(img_np))
+
+                style = np.mean(np.array(fft_magnitudes), axis=0)
+
+                np.save(file=os.path.join(dir, client_id), arr=style)
+
+        with open(os.path.join(root, 'test_diff_dom.txt'), 'r') as f:
+            test_diff_dom_data = f.read().splitlines()
+
+            all_data = {'test_diff_dome': test_diff_dom_data}
+
+            for client_id in all_data.keys():
+                img_names = all_data[client_id]
+                fft_magnitudes = []
+
+                for filename in img_names:
+                    path_to_image = os.path.join(
+                        root, 'images', f'{filename}.jpg')
+                    img = Image.open(path_to_image)
+                    img_np = np.asanyarray(img, dtype=np.float32)
+
+                    fft_magnitudes.append(extract_amp_spectrum(img_np))
+
+                style = np.mean(np.array(fft_magnitudes), axis=0)
+
+                np.save(file=os.path.join(dir, client_id), arr=style)
+
+
         return dir
 
 
@@ -97,27 +155,30 @@ def get_transforms(args):
 
         augmentations = []
 
+        if args.domain_adapt == 'fda':
+            dir = create_style(args)
+            augmentations.append(sstr.TargetStyle(dir))
+
         if args.rrc_transform is True:
             size = (args.h_resize, args.w_resize)
             scale = (args.min_scale, args.max_scale)
 
-            augmentations.append(sstr.RandomResizedCrop(size = size, scale = scale))
- 
+            augmentations.append(
+                sstr.RandomResizedCrop(size=size, scale=scale))
+
         if args.flip is True:
             augmentations.append(sstr.RandomHorizontalFlip())
 
         if args.random_rotation is True:
             augmentations.append(sstr.RandomRotation(30))
-        
-        if args.domain_adapt == 'fda':
-            dir = create_style(args)
-            augmentations.append(sstr.TargetStyle(dir))
-        
+
         if args.jitter is True:
-            augmentations.append(sstr.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4))
+            augmentations.append(sstr.ColorJitter(
+                brightness=0.4, contrast=0.4, saturation=0.4))
 
         augmentations.append(sstr.ToTensor())
-        augmentations.append(sstr.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]))
+        augmentations.append(sstr.Normalize(
+            mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]))
 
         train_transforms = sstr.Compose(augmentations)
 
@@ -185,10 +246,10 @@ def get_datasets(args):
     #                                           client_name='single client'))
     else:
         raise NotImplementedError
-    #shuffle dataset
+    # shuffle dataset
     # if train_datasets!= None:
     #     random.shuffle(train_datasets)
-        
+
     # determine evaluation and testing datasets
     if args.dataset2 == 'idda':
         # the repositary where data and metadata is stored
@@ -266,6 +327,69 @@ def gen_clients(args, train_datasets, evaluation_datasets, test_datasets, model)
     return single_client, clients[0], clients[1]
 
 
+def create_style_based_clusters(args):
+
+    cluster_mapping = {}
+
+    dir = create_style(args)
+    test_dir = create_style_test(args)
+
+    # list of client id
+    client_ids = os.listdir(dir)
+    test_client_ids = os.listdir(test_dir)
+
+    X = []
+    X_test = []
+
+    for client_id in client_ids:
+        row = np.load(os.path.join(dir, client_id)).flatten()
+        X.append(row)
+    
+    for client_id in test_client_ids:
+        row = np.load(os.path.join(test_dir, client_id)).flatten()
+        X_test.append(row)
+
+    X = np.array(X)
+    X_test = np.array(X_test)
+
+    model_list = []
+    res_list = []
+    score_list = []
+
+    # if self.args.force_k == 0:
+    #    k_list = list(range(4, 20))
+    # else:
+    #    k_list = [self.args.force_k]
+
+    k_list = list(range(4, 20))
+
+    for k_size in k_list:
+        model = KMeans(n_clusters=k_size, n_init=10).fit(X)
+        model_list.append(model)
+        res_list.append(model.labels_)
+        score_list.append(silhouette_score(X, model.labels_))
+
+    best_id = np.argmax(score_list)
+    k_means_model = model_list[best_id]
+
+    clusters_of_test_clients = k_means_model.predict(X_test)
+    # if self.args.force_k == 0:
+    #    k_means_relative_path = "_model.pkl"
+    # else:
+    #    k_means_relative_path = f"_model_{self.args.force_k}"
+    #pickle.dump(self.k_means_model, open(self.cluster_path.split(".json")[0] + k_means_relative_path, "wb"))
+    k_size = k_list[best_id]
+    #self.writer.write(f"best k {self.k_size}")
+    #self.writer.write(f"best silhouette_score {score_list[best_id]}")
+    for cluster_id in range(k_size):
+        cluster_mapping[cluster_id] = [client_ids[i]
+                                       for i, val in enumerate(res_list[best_id])
+                                       if val == cluster_id]
+    for i, cluster_id in enumerate(clusters_of_test_clients):
+        cluster_mapping[cluster_id].append(test_client_ids[i])
+        
+    return cluster_mapping
+
 def main():
     parser = get_parser()
     args = parser.parse_args()
@@ -274,24 +398,25 @@ def main():
     print(f'Initializing model...')
     model = model_init(args)
 
-    #initialize teacher if setting is semi_supervised
+    # initialize teacher if setting is semi_supervised
     teacher = None
     if args.self_supervised is True:
         teacher = model_init(args)
 
-    #initialize teacher_kd if knowledge distillation is applied
+    # initialize teacher_kd if knowledge distillation is applied
     teacher_kd = None
     if args.kd is True:
         teacher_kd = model_init(args)
-    
-    #load pre_trained model if specified
+
+    # load pre_trained model if specified
     if args.load_pretrained is True:
         print('Loading pretrained model...')
-        load_path = os.path.join('checkpoints', 'centralized', 'gta5', 'idda', f'round{args.round}.ckpt')
+        load_path = os.path.join(
+            'checkpoints', 'centralized', 'gta5', 'idda', f'round{args.round}.ckpt')
         run_path = args.run_path
         root = '.'
 
-        Logger.restore(name = load_path, run_path = run_path, root = root)
+        Logger.restore(name=load_path, run_path=run_path, root=root)
         if args.model == 'deeplabv3_mobilenetv2':
             checkpoint = torch.load(load_path)
             model.load_state_dict(checkpoint["model_state"])
@@ -305,10 +430,8 @@ def main():
         teacher.cuda()
         teacher_kd.cuda()
 
-    
     model.cuda()
     print('Done.')
-
 
     print('Generate datasets...')
     train_datasets, evaluation_datasets, test_datasets = get_datasets(args)
@@ -319,18 +442,39 @@ def main():
         args, train_datasets, evaluation_datasets, test_datasets, model)
     server = Server(args, single_client, train_clients,
                     test_clients, model, metrics)
-    
+
     if args.self_supervised is True:
         server.set_teacher(teacher)
-    
+
     if args.kd is True:
         server.set_teacher_kd(teacher_kd)
+    
+    if args.clustering is not None:
+        #associate client to its cluster
+        if args.clustering == 'ladd':
+            cluster_mapping = create_style_based_clusters(args)
+        
+        client_dic = {}
+        for client in train_clients:
+            client_dic[client.name] = client
+        for client in test_clients:
+            client_dic[client.name] = client
 
+        for cluster_id in cluster_mapping.keys():
+            for client_id in cluster_mapping[cluster_id]:
+                client = client_dic[client_id]
+                client.cluster_id = cluster_id
+        
+        #inform server about the number of clusters
+        server.number_of_clusters = len(cluster_mapping.items())
+        server.model_params_dict = [copy.deepcopy(server.model_params_dict) for i in range(server.number_of_clusters)]
 
     server.train()
     server.test()
 
 # this method is not utilized anymore
+
+
 def centralised():
     parser = get_parser()
     args = parser.parse_args()
@@ -360,6 +504,8 @@ def centralised():
     print("finish testing")
 
 # this method is not utilized anymore
+
+
 def get_datasets_centralised(args):
 
     train_datasets = []
