@@ -42,6 +42,8 @@ def get_job_name(args):
         job_name += "testResize_"
     if args.domain_adapt is not None:
         job_name += f"{args.domain_adapt}_"
+    if args.load_pretrained is not None:
+        job_name += "load_pretrained_"
 
 
     #job_name += f"lr{args.lr}_rs{args.random_seed}_{args.clients_type}"
