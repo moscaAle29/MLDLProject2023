@@ -607,6 +607,8 @@ def main():
         # associate client to its cluster
         if args.clustering == 'ladd':
             cluster_mapping = create_style_based_clusters(args)
+        elif args.clustering == 'vae':
+            cluster_mapping = create_vae_based_clusters(args)
 
         client_dic = {}
         for client in train_clients:
