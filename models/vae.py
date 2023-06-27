@@ -81,7 +81,7 @@ class Flow(nn.Module):
         return x, log_det
 
 
-class VAE(BaseModel):
+class VAE(nn.Module):
 
     def __init__(self,
                  imgChannels: int,
