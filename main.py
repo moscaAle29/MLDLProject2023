@@ -29,6 +29,12 @@ from PIL import Image
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
+from models.vae import VAE
+import torchvision.transforms.functional as F
+
+from torch.utils.data import DataLoader
+
+
 
 def set_seed(random_seed):
     random.seed(random_seed)
@@ -94,7 +100,8 @@ def create_style(args):
                 np.save(file=os.path.join(dir, client_id), arr=style)
 
         return dir
-    
+
+
 def create_style_test(args):
     if args.dataset2 == 'idda':
         root = 'data/idda'
@@ -144,7 +151,6 @@ def create_style_test(args):
                 style = np.mean(np.array(fft_magnitudes), axis=0)
 
                 np.save(file=os.path.join(dir, client_id), arr=style)
-
 
         return dir
 
@@ -344,7 +350,7 @@ def create_style_based_clusters(args):
     for client_id in client_ids:
         row = np.load(os.path.join(dir, client_id)).flatten()
         X.append(row)
-    
+
     for client_id in test_client_ids:
         row = np.load(os.path.join(test_dir, client_id)).flatten()
         X_test.append(row)
@@ -387,8 +393,43 @@ def create_style_based_clusters(args):
                                        if val == cluster_id]
     for i, cluster_id in enumerate(clusters_of_test_clients):
         cluster_mapping[cluster_id].append(test_client_ids[i])
-        
+
     return cluster_mapping
+
+
+def create_vae_based_clusters(args, train_datasets, test_datasets):
+    
+    # Initialize the network and the Adam optimizer
+    for train_dataset in train_datasets:
+        net = VAE(imgChannels=3).cuda()
+        optimizer = torch.optim.Adam(net.parameters(), lr=0.05)
+        data_loader = DataLoader(train_dataset, batch_size=2, shuffle=True, drop_last=True)
+
+        num_epochs = 20
+        for epoch in range(num_epochs):
+            for idx, data in enumerate(data_loader, 0):
+                imgs, _ = data
+                imgs = imgs.cuda()
+
+                # Feeding a batch of images into the network to obtain the output image, mu, and logVar
+                out, mu, logVar = net(imgs)
+
+                # The loss is the BCE loss combined with the KL divergence to ensure the distribution is learnt
+                kl_divergence = 0.5 * \
+                    torch.sum(-1 - logVar + mu.pow(2) + logVar.exp())
+                loss = F.binary_cross_entropy(
+                    out, imgs, size_average=False) + kl_divergence
+
+                # Backpropagation based on the loss
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+
+            print('Epoch {}: Loss {}'.format(epoch, loss))
+        
+
+
+
 
 def main():
     parser = get_parser()
@@ -448,12 +489,12 @@ def main():
 
     if args.kd is True:
         server.set_teacher_kd(teacher_kd)
-    
+
     if args.clustering is not None:
-        #associate client to its cluster
+        # associate client to its cluster
         if args.clustering == 'ladd':
             cluster_mapping = create_style_based_clusters(args)
-        
+
         client_dic = {}
         for client in train_clients:
             client_dic[client.name] = client
@@ -464,10 +505,11 @@ def main():
             for client_id in cluster_mapping[cluster_id]:
                 client = client_dic[client_id]
                 client.cluster_id = cluster_id
-        
-        #inform server about the number of clusters
+
+        # inform server about the number of clusters
         server.number_of_clusters = len(cluster_mapping.items())
-        server.model_params_dict = [copy.deepcopy(server.model_params_dict) for i in range(server.number_of_clusters)]
+        server.model_params_dict = [copy.deepcopy(
+            server.model_params_dict) for i in range(server.number_of_clusters)]
 
     server.train()
     server.test()
