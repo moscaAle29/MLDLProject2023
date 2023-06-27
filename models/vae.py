@@ -7,7 +7,7 @@ import torch.nn.functional as F
 A Convolutional Variational Autoencoder
 """
 class VAE(nn.Module):
-    def __init__(self, imgChannels=1, featureDim=32*20*20, zDim=256):
+    def __init__(self, imgChannels=1, featureDim=2359296, zDim=256):
         super(VAE, self).__init__()
 
         self.zDim = zDim
