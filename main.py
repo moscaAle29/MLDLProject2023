@@ -163,7 +163,8 @@ def get_transforms(args):
 
         if args.domain_adapt == 'fda':
             dir = create_style(args)
-            augmentations.append(sstr.TargetStyle(dir))
+            augmentations.append(sstr.TargetStyle(dir, args.fda_alpha))
+
 
         if args.rrc_transform is True:
             size = (args.h_resize, args.w_resize)
@@ -177,7 +178,6 @@ def get_transforms(args):
 
         if args.random_rotation is True:
             augmentations.append(sstr.RandomRotation(30))
-
         if args.jitter is True:
             augmentations.append(sstr.ColorJitter(
                 brightness=0.4, contrast=0.4, saturation=0.4))
@@ -452,8 +452,9 @@ def main():
     # load pre_trained model if specified
     if args.load_pretrained is True:
         print('Loading pretrained model...')
-        load_path = os.path.join(
-            'checkpoints', 'centralized', 'gta5', 'idda', f'round{args.round}.ckpt')
+        project = args.run_path.split('/')[1]
+        repo = project.split('_')
+        load_path = os.path.join('checkpoints',repo[0], repo[1], repo[2] ,f'round{args.round}.ckpt')
         run_path = args.run_path
         root = '.'
 
@@ -461,14 +462,15 @@ def main():
         if args.model == 'deeplabv3_mobilenetv2':
             checkpoint = torch.load(load_path)
             model.load_state_dict(checkpoint["model_state"])
-            teacher.load_state_dict(checkpoint["model_state"])
+            if teacher is not None:
+                teacher.load_state_dict(checkpoint["model_state"])
+            if teacher_kd is not None:
+                teacher_kd.load_state_dict(checkpoint["model_state"])
 
-        checkpoint = torch.load(load_path)
-        model.load_state_dict(checkpoint["model_state"])
-        teacher.load_state_dict(checkpoint["model_state"])
-        teacher_kd.load_state_dict(checkpoint["model_state"])
 
-        teacher.cuda()
+    if teacher is not None:
+        teacher.cuda()  
+    if teacher_kd is not None:
         teacher_kd.cuda()
 
     model.cuda()

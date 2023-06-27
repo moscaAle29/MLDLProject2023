@@ -112,7 +112,10 @@ class KnowledgeDistillationLoss(nn.Module):
 
 def set_up_logger(args):
 
-    logger = Logger(name = get_job_name(args), project = get_project_name(args))
+    if args.resume:
+        logger = Logger(name = get_job_name(args), project = get_project_name(args), wid = args.run_path.split('/')[2])
+    else:
+        logger = Logger(name = get_job_name(args), project = get_project_name(args))
 
     return logger
 
