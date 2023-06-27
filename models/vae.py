@@ -10,6 +10,8 @@ class VAE(nn.Module):
     def __init__(self, imgChannels=1, featureDim=32*20*20, zDim=256):
         super(VAE, self).__init__()
 
+        self.zDim = zDim
+
         # Initializing the 2 convolutional layers and 2 full-connected layers for the encoder
         self.encConv1 = nn.Conv2d(imgChannels, 16, 5)
         self.encConv2 = nn.Conv2d(16, 32, 5)
@@ -58,3 +60,7 @@ class VAE(nn.Module):
         z = self.reparameterize(mu, logVar)
         out = self.decoder(z)
         return out, mu, logVar
+    
+    def generate_img(self):
+
+        return self.decoder(torch.rand_like(self.zDim))

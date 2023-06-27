@@ -396,9 +396,11 @@ def create_style_based_clusters(args):
 
     return cluster_mapping
 
-
 def create_vae_based_clusters(args, train_datasets, test_datasets):
-    
+    root = './data/generated_imgs'
+    if not os.path.isdir(root):
+        os.makedirs(root)
+
     # Initialize the network and the Adam optimizer
     for train_dataset in train_datasets:
         net = VAE(imgChannels=3).cuda()
@@ -425,11 +427,120 @@ def create_vae_based_clusters(args, train_datasets, test_datasets):
                 loss.backward()
                 optimizer.step()
 
-            print('Epoch {}: Loss {}'.format(epoch, loss))
-        
+        #generate imgs to train the master VAE
+        for i in range(20):
+            name = f'{train_dataset.client_name}_{i}'
+            path = os.path.join(root, name)
 
+            img = net.generate_img()
 
+            torch.save(img, path)
+    
+    #train the master VAE
+    net = VAE(imgChannels=3).cuda()
+    optimizer = torch.optim.Adam(net.parameters(), lr=0.05)
 
+    for epoch in range(num_epochs):
+        for img_name in os.listdir(root):
+            imgs, _ = torch.load(os.path.join(root, img_name))
+            imgs = imgs.cuda()
+
+            # Feeding a batch of images into the network to obtain the output image, mu, and logVar
+            out, mu, logVar = net(imgs)
+
+            # The loss is the BCE loss combined with the KL divergence to ensure the distribution is learnt
+            kl_divergence = 0.5 * \
+                torch.sum(-1 - logVar + mu.pow(2) + logVar.exp())
+            loss = F.binary_cross_entropy(
+                out, imgs, size_average=False) + kl_divergence
+
+            # Backpropagation based on the loss
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+    
+    #Start clustering
+
+    X = []
+    client_ids = []
+    X_test = []
+    test_client_ids = []
+    
+    for train_dataset in train_datasets:
+        client_ids.append(train_dataset.client_name)
+        mu_list = []
+        data_loader = DataLoader(train_dataset, batch_size=1)
+        for idx, data in enumerate(data_loader, 0):
+            img, _ = data
+            img.cuda()
+
+            with torch.no_grad():
+                _, mu, _ = net(img)
+            
+            mu_list.append(mu.numpy())
+
+        mu_list = np.array(mu_list)
+        avg = np.mean(mu_list, axis = 0)
+
+        X.append(avg)
+
+    for test_dataset in test_datasets:
+        client_ids.append(test_dataset.client_name)
+        mu_list = []
+        data_loader = DataLoader(test_dataset, batch_size=1)
+        for idx, data in enumerate(data_loader, 0):
+            img, _ = data
+            img.cuda()
+
+            with torch.no_grad():
+                _, mu, _ = net(img)
+            
+            mu_list.append(mu.numpy())
+
+        mu_list = np.array(mu_list)
+        avg = np.mean(mu_list, axis = 0)
+
+        X_test.append(avg)
+
+    model_list = []
+    res_list = []
+    score_list = []
+
+    # if self.args.force_k == 0:
+    #    k_list = list(range(4, 20))
+    # else:
+    #    k_list = [self.args.force_k]
+
+    k_list = list(range(4, 20))
+
+    for k_size in k_list:
+        model = KMeans(n_clusters=k_size, n_init=10).fit(X)
+        model_list.append(model)
+        res_list.append(model.labels_)
+        score_list.append(silhouette_score(X, model.labels_))
+
+    best_id = np.argmax(score_list)
+    k_means_model = model_list[best_id]
+
+    clusters_of_test_clients = k_means_model.predict(X_test)
+    # if self.args.force_k == 0:
+    #    k_means_relative_path = "_model.pkl"
+    # else:
+    #    k_means_relative_path = f"_model_{self.args.force_k}"
+    #pickle.dump(self.k_means_model, open(self.cluster_path.split(".json")[0] + k_means_relative_path, "wb"))
+    k_size = k_list[best_id]
+    #self.writer.write(f"best k {self.k_size}")
+    #self.writer.write(f"best silhouette_score {score_list[best_id]}")
+    cluster_mapping = {}
+    for cluster_id in range(k_size):
+        cluster_mapping[cluster_id] = [client_ids[i]
+                                       for i, val in enumerate(res_list[best_id])
+                                       if val == cluster_id]
+    for i, cluster_id in enumerate(clusters_of_test_clients):
+        cluster_mapping[cluster_id].append(test_client_ids[i])
+
+    print(cluster_mapping)
+    return cluster_mapping
 
 def main():
     parser = get_parser()
@@ -517,8 +628,6 @@ def main():
     server.test()
 
 # this method is not utilized anymore
-
-
 def centralised():
     parser = get_parser()
     args = parser.parse_args()
@@ -548,8 +657,6 @@ def centralised():
     print("finish testing")
 
 # this method is not utilized anymore
-
-
 def get_datasets_centralised(args):
 
     train_datasets = []
