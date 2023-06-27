@@ -298,14 +298,15 @@ def main():
         if args.model == 'deeplabv3_mobilenetv2':
             checkpoint = torch.load(load_path)
             model.load_state_dict(checkpoint["model_state"])
-            teacher.load_state_dict(checkpoint["model_state"])
+            if teacher is not None:
+                teacher.load_state_dict(checkpoint["model_state"])
+            if teacher_kd is not None:
+                teacher_kd.load_state_dict(checkpoint["model_state"])
 
-        checkpoint = torch.load(load_path)
-        model.load_state_dict(checkpoint["model_state"])
-        teacher.load_state_dict(checkpoint["model_state"])
-        teacher_kd.load_state_dict(checkpoint["model_state"])
 
-        teacher.cuda()
+    if teacher is not None:
+        teacher.cuda()  
+    if teacher_kd is not None:
         teacher_kd.cuda()
 
     
