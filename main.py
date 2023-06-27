@@ -396,17 +396,12 @@ def create_style_based_clusters(args):
 
     return cluster_mapping
 
-def create_vae_based_clusters(args, train_datasets, test_datasets):
+def create_vae_based_clusters(args):
     root = './data/generated_imgs'
     if not os.path.isdir(root):
         os.makedirs(root)
-    #transform
-    resize = sstr.RandomResizedCrop(size=(200,200))
-    normalization = sstr.Normalize(mean=[0.485, 0.456, 0.406],
-                           std=[0.229, 0.224, 0.225])
-    
-    transform = sstr.Compose([sstr.ToTensor(),resize, normalization])
 
+    train_datasets, test_datasets = get_dataset_vae()
     # Initialize the network and the Adam optimizer
     for train_dataset in train_datasets:
         print(f"train vae on client_{train_dataset.client_name}")
@@ -555,6 +550,38 @@ def create_vae_based_clusters(args, train_datasets, test_datasets):
     print(cluster_mapping)
     return cluster_mapping
 
+def get_dataset_vae():
+    root = 'data/idda'
+    train_datasets = []
+
+    #transform
+    resize = sstr.RandomResizedCrop(size=(200,200))
+    normalization = sstr.Normalize(mean=[0.485, 0.456, 0.406],
+                           std=[0.229, 0.224, 0.225])
+    
+    transform = sstr.Compose([sstr.ToTensor(),resize, normalization])
+
+
+    with open(os.path.join(root, 'train.json'), 'r') as f:
+        all_data = json.load(f)
+        for client_id in all_data.keys():
+            train_datasets.append(IDDADataset(root=root, list_samples=all_data[client_id], transform=transform,
+                                                client_name=client_id))
+            
+    with open(os.path.join(root, 'test_same_dom.txt'), 'r') as f:
+            test_same_dom_data = f.read().splitlines()
+            test_same_dom_dataset = IDDADataset(root=root, list_samples=test_same_dom_data, transform=transform,
+                                                client_name='test_same_dom')
+
+    with open(os.path.join(root, 'test_diff_dom.txt'), 'r') as f:
+        test_diff_dom_data = f.read().splitlines()
+        test_diff_dom_dataset = IDDADataset(root=root, list_samples=test_diff_dom_data, transform=transform,
+                                            client_name='test_diff_dom')
+    test_datasets = [test_same_dom_dataset, test_diff_dom_dataset]
+
+    return train_datasets, test_datasets
+
+
 def main():
     parser = get_parser()
     args = parser.parse_args()
@@ -621,7 +648,7 @@ def main():
         if args.clustering == 'ladd':
             cluster_mapping = create_style_based_clusters(args)
         elif args.clustering == 'vae':
-            cluster_mapping = create_vae_based_clusters(args, train_datasets, test_datasets)
+            cluster_mapping = create_vae_based_clusters(args)
 
         client_dic = {}
         for client in train_clients:
