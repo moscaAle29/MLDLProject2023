@@ -288,7 +288,9 @@ def main():
     #load pre_trained model if specified
     if args.load_pretrained is True:
         print('Loading pretrained model...')
-        load_path = os.path.join('checkpoints', 'centralized', 'gta5', 'idda', f'round{args.round}.ckpt')
+        project = args.run_path.split('/')[1]
+        repo = project.split('_')
+        load_path = os.path.join('checkpoints',repo[0], repo[1], repo[2] ,f'round{args.round}.ckpt')
         run_path = args.run_path
         root = '.'
 

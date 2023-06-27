@@ -22,6 +22,12 @@ class Server:
         self.teacher_kd_params_dict = None
         self.teacher_kd = None
 
+        if args.resume:
+            self.checkpoint_round = args.round
+        else:
+            self.checkpoint_round = 0
+
+
         self.logger = set_up_logger(self.args)
 
         for test_client in test_clients:
@@ -114,7 +120,7 @@ class Server:
         """
         print("-------------------------START TRAINING-------------------------")
 
-        for r in range(self.args.num_rounds):
+        for r in range(self.checkpoint_round,self.args.num_rounds):
             print(f'ROUND-{r+1}')
             selected_clients = self.select_clients()
 
@@ -145,7 +151,7 @@ class Server:
 
                 print("FINISH EVALUATION")
 
-                self.save_model(round = r+1)
+            self.save_model(round = r+1)
             
             #if self_supervised is True, update teacher after some intervals or never update
             if self.args.self_supervised is True:

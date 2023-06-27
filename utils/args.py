@@ -9,6 +9,8 @@ def get_parser():
     parser.add_argument('--dataset', type=str, choices=['idda', 'femnist', 'gta5'], required=True, help='dataset name')
     parser.add_argument('--dataset2', type=str, choices=['idda', 'femnist', 'gta5'], required=True, help='dataset name')
     parser.add_argument('--domain_adapt', type=str, choices=['fda'], required=False, help='domain adaptation method')
+    parser.add_argument('--resume', action='store_true', default=False, help='resume paused or crashed run')
+
 
     parser.add_argument('--niid', action='store_true', default=False,
                         help='Run the experiment with the non-IID partition (IID by default). Only on FEMNIST dataset.')
