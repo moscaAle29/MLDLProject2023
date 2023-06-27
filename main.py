@@ -432,7 +432,7 @@ def create_vae_based_clusters(args, train_datasets, test_datasets):
             name = f'{train_dataset.client_name}_{i}'
             path = os.path.join(root, name)
 
-            img = net.sample(1, 0)
+            img = net.generate_img()
 
             torch.save(img, path)
     
