@@ -400,12 +400,21 @@ def create_vae_based_clusters(args, train_datasets, test_datasets):
     root = './data/generated_imgs'
     if not os.path.isdir(root):
         os.makedirs(root)
+    #transform
+    resize = sstr.RandomResizedCrop(size=(200,200))
+    normalization = sstr.Normalize(mean=[0.485, 0.456, 0.406],
+                           std=[0.229, 0.224, 0.225])
+    
+    transform = sstr.Compose([sstr.ToTensor,resize, normalization])
 
     # Initialize the network and the Adam optimizer
     for train_dataset in train_datasets:
+        print(f"train vae on client_{train_dataset.client_name}")
         net = VAE(imgChannels=3).cuda()
         optimizer = torch.optim.Adam(net.parameters(), lr=0.05)
         data_loader = DataLoader(train_dataset, batch_size=2, shuffle=True, drop_last=True)
+
+        train_dataset.transform = transform
 
         num_epochs = 20
         for epoch in range(num_epochs):
@@ -437,6 +446,7 @@ def create_vae_based_clusters(args, train_datasets, test_datasets):
             torch.save(img, path)
     
     #train the master VAE
+    print("train the master VAE")
     net = VAE(imgChannels=3).cuda()
     optimizer = torch.optim.Adam(net.parameters(), lr=0.05)
 
@@ -460,7 +470,7 @@ def create_vae_based_clusters(args, train_datasets, test_datasets):
             optimizer.step()
     
     #Start clustering
-
+    print("Start clustering")
     X = []
     client_ids = []
     X_test = []
@@ -488,6 +498,9 @@ def create_vae_based_clusters(args, train_datasets, test_datasets):
         client_ids.append(test_dataset.client_name)
         mu_list = []
         data_loader = DataLoader(test_dataset, batch_size=1)
+
+        test_dataset.transform = transform
+
         for idx, data in enumerate(data_loader, 0):
             img, _ = data
             img.cuda()
