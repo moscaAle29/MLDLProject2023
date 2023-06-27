@@ -110,12 +110,12 @@ class VAE(nn.Module):
         for h_dim in hidden_dims:
             modules.append(
                 nn.Sequential(
-                    nn.Conv2d(in_channels, out_channels=h_dim,
+                    nn.Conv2d(imgChannels, out_channels=h_dim,
                               kernel_size=3, stride=2, padding=1),
                     nn.BatchNorm2d(h_dim),
                     nn.LeakyReLU())
             )
-            in_channels = h_dim
+            imgChannels = h_dim
 
         self.encoder = nn.Sequential(*modules)
         self.fc_mu = nn.Linear(hidden_dims[-1]*4, latent_dims)
