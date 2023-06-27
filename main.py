@@ -120,7 +120,9 @@ def get_transforms(args):
             augmentations.append(sstr.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4))
 
         augmentations.append(sstr.ToTensor())
-        augmentations.append(sstr.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]))
+       
+        if args.canny is False:
+            augmentations.append(sstr.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]))
 
         train_transforms = sstr.Compose(augmentations)
 
@@ -290,9 +292,25 @@ def main():
             model.load_state_dict(checkpoint["model_state"])
             teacher.load_state_dict(checkpoint["model_state"])
 
-
         teacher.cuda()
 
+    if args.task_2_data_collection is True:
+        print("Loading last checkpoint")
+        load_path=os.path.join('checkpoints','task2')
+        #get the ckpt files and sort them
+        past_checkpoints=sorted(os.listdir(load_path))
+        #if we have at least one file then get the last one(last one alphabetically=last saved one)
+        if past_checkpoints!=None:
+            load_path=os.path.join(past_checkpoints[-1])
+        run_path=args.run_path
+        root='.'
+        
+        Logger.restore(name = load_path, run_path = run_path, root = root)
+        #before loading the checkpoint we check if there is at least one file
+        if args.model == 'deeplabv3_mobilenetv2' and past_checkpoints!=None:
+            checkpoint = torch.load(load_path)
+            model.load_state_dict(checkpoint["model_state"])
+        
     
     model.cuda()
     print('Done.')
@@ -310,7 +328,6 @@ def main():
     
     if args.self_supervised is True:
         server.set_teacher(teacher)
-
 
     server.train()
     server.test()

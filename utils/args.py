@@ -10,8 +10,7 @@ def get_parser():
     parser.add_argument('--dataset2', type=str, choices=['idda', 'femnist', 'gta5'], required=True, help='dataset name')
     parser.add_argument('--domain_adapt', type=str, choices=['fda'], required=False, help='domain adaptation method')
 
-    parser.add_argument('--niid', action='store_true', default=False,
-                        help='Run the experiment with the non-IID partition (IID by default). Only on FEMNIST dataset.')
+    parser.add_argument('--niid', action='store_true', default=False,help='Run the experiment with the non-IID partition (IID by default). Only on FEMNIST dataset.')
     parser.add_argument('--model', type=str, choices=['deeplabv3_mobilenetv2', 'resnet18', 'cnn'], help='model name')
     parser.add_argument('--num_rounds', type=int, help='number of rounds')
     parser.add_argument('--num_epochs', type=int, help='number of local epochs')
@@ -40,12 +39,9 @@ def get_parser():
     parser.add_argument('--jitter', action='store_true', default=False, help='whether to use color jitter')
     parser.add_argument('--canny', action='store_true', default=False, help='whether to use canny algorithm')
     parser.add_argument('--cv2_transform', action='store_true', default=False, help='whether to use cv2_transforms')
-    parser.add_argument('--rrc_transform', action='store_true', default=False,
-                        help='whether to use random resized crop')
-    parser.add_argument('--rsrc_transform', action='store_true', default=False,
-                        help='whether to use random scale random crop')
-    parser.add_argument('--cts_norm', action='store_true', default=False,
-                        help='whether to use cts normalization otherwise 0.5 for mean and std')
+    parser.add_argument('--rrc_transform', action='store_true', default=False,help='whether to use random resized crop')
+    parser.add_argument('--rsrc_transform', action='store_true', default=False,help='whether to use random scale random crop')
+    parser.add_argument('--cts_norm', action='store_true', default=False,help='whether to use cts normalization otherwise 0.5 for mean and std')
     parser.add_argument('--random_rotation', action='store_true', default=False, help='do random rotation on img')
 
     
@@ -54,6 +50,7 @@ def get_parser():
     parser.add_argument('--run_path', required=False, help='where to find checkpoints in wandb')
     parser.add_argument('--round', type = int, default= 100, help = 'round at which model state is stored')
     parser.add_argument('--update_interval', type=int, default=0, help='update teacher after n rounds, n= 0 means never')
+    parser.add_argument('--task_2_data_collection', type=bool,action='store_true', default=False,help="Run task 2 with specified number of clients and epochs" )
 
 
     return parser

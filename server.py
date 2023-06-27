@@ -23,7 +23,9 @@ class Server:
         self.model_params_dict = copy.deepcopy(self.model.state_dict())
         self.teacher_params_dict = None
         self.teacher = None
-
+        
+        self.output_file= open("results.txt", "a")
+        
         self.logger = set_up_logger(self.args)
 
         for test_client in test_clients:
@@ -47,6 +49,22 @@ class Server:
 
         torch.save(state, path)
         self.logger.save(path)
+
+    def save_model_client_epochs(self):
+        dir = os.path.join('checkpoints','task2')
+        name = f'{self.args.clients_per_round}clients_{self.args.num_epochs}epochs_{self.args.num_rounds}rounds.ckpt'
+        path = os.path.join(dir, name)
+
+        state = {
+            "num_clients": self.args.clients_per_round,
+            "epochs":self.args.num_epochs,
+            "rounds":self.args.num_rounds,
+            "model_state": self.model_params_dict
+        }
+
+        torch.save(state, path)
+        self.logger.save(path)
+        self.output_file.write(f"n_clients:{self.args.clients_per_round}, n_epochs:{self.args.num_epochs}, n_rounds:{self.args.num_rounds} ")
 
     def select_clients(self):
         if self.args.setting == 'federated':
@@ -149,6 +167,8 @@ class Server:
                 #get the train evaluation
                 train_score = self.metrics['eval_train'].get_results()
                 
+                self.output_file.write(f"Eval MIoU(train):{train_score['Mean IoU']}, ")
+                
                 #log the evaluation
                 self.logger.log_metrics({'Train Mean IoU': train_score['Mean IoU']}, step=r + 1)
                 
@@ -172,7 +192,10 @@ class Server:
                 if self.args.update_interval != 0:
                     if (r+1) % self.args.update_interval == 0:
                         self.teacher.load_state_dict(self.model_params_dict)
-
+        #save the model given number of clients and epochs
+        if self.args.task_2_data_collection is True:
+            print("-------------------------SAVING CHECKPOINT-------------------------")
+            self.save_model_client_epochs(self.args)
 
 
 
@@ -201,6 +224,7 @@ class Server:
 
                 test_score = self.metrics['test_same_dom'].get_results()
                 self.logger.log_metrics({'Test Same Dom Mean IoU': test_score['Mean IoU']}, step = step)
+                self.output_file.write(f"Test same domain:{test_score['Mean IoU']}, ")
             else:
                 print("DIFF DOM")
 
@@ -208,4 +232,5 @@ class Server:
 
                 test_score = self.metrics['test_diff_dom'].get_results()
                 self.logger.log_metrics({'Test Diff Dom Mean IoU': test_score['Mean IoU']}, step = step)
+                self.output_file.write(f"Test different domain:{test_score['Mean IoU']}\n")
 
