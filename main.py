@@ -405,7 +405,7 @@ def create_vae_based_clusters(args, train_datasets, test_datasets):
     normalization = sstr.Normalize(mean=[0.485, 0.456, 0.406],
                            std=[0.229, 0.224, 0.225])
     
-    transform = sstr.Compose([sstr.ToTensor,resize, normalization])
+    transform = sstr.Compose([sstr.ToTensor(),resize, normalization])
 
     # Initialize the network and the Adam optimizer
     for train_dataset in train_datasets:
