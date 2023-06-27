@@ -7,10 +7,11 @@ import torch.nn.functional as F
 A Convolutional Variational Autoencoder
 """
 class VAE(nn.Module):
-    def __init__(self, imgChannels=1, featureDim=32*20*20, zDim=256):
+    def __init__(self, imgChannels=1, featureDim=131178496, zDim=256):
         super(VAE, self).__init__()
 
         self.zDim = zDim
+        self.featureDim = featureDim
 
         # Initializing the 2 convolutional layers and 2 full-connected layers for the encoder
         self.encConv1 = nn.Conv2d(imgChannels, 16, 5)
@@ -30,7 +31,7 @@ class VAE(nn.Module):
         # Mu and logVar are used for generating middle representation z and KL divergence loss
         x = F.relu(self.encConv1(x))
         x = F.relu(self.encConv2(x))
-        x = x.view(-1, 32*20*20)
+        x = x.view(-1, self.featureDim)
         mu = self.encFC1(x)
         logVar = self.encFC2(x)
         return mu, logVar
