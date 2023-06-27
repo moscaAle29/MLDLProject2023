@@ -409,8 +409,6 @@ def create_vae_based_clusters(args):
         optimizer = torch.optim.Adam(net.parameters(), lr=0.05)
         data_loader = DataLoader(train_dataset, batch_size=2, shuffle=True, drop_last=True)
 
-        train_dataset.transform = transform
-
         num_epochs = 20
         for epoch in range(num_epochs):
             for idx, data in enumerate(data_loader, 0):
@@ -493,8 +491,6 @@ def create_vae_based_clusters(args):
         client_ids.append(test_dataset.client_name)
         mu_list = []
         data_loader = DataLoader(test_dataset, batch_size=1)
-
-        test_dataset.transform = transform
 
         for idx, data in enumerate(data_loader, 0):
             img, _ = data
