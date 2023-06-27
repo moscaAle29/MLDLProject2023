@@ -608,7 +608,7 @@ def main():
         if args.clustering == 'ladd':
             cluster_mapping = create_style_based_clusters(args)
         elif args.clustering == 'vae':
-            cluster_mapping = create_vae_based_clusters(args)
+            cluster_mapping = create_vae_based_clusters(args, train_datasets, test_datasets)
 
         client_dic = {}
         for client in train_clients:
