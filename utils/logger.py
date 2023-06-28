@@ -67,4 +67,7 @@ def get_group_name(args):
 
 
 def get_project_name(args):
-    return f"{args.setting}_{args.dataset}_{args.dataset2}"
+    if args.task is None:
+        return f"{args.setting}_{args.dataset}_{args.dataset2}"
+    else:
+        return args.task

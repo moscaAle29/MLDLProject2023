@@ -303,6 +303,24 @@ def main():
             if teacher_kd is not None:
                 teacher_kd.load_state_dict(checkpoint["model_state"])
 
+    #resume model if specified
+    if args.resume is True:
+        print('Loading pretrained model...')
+        project = args.run_path.split('/')[1]
+        repo = project.split('_')
+        load_path = os.path.join('checkpoints',repo[0], repo[1], repo[2] ,f'last_point.ckpt')
+        run_path = args.run_path
+        root = '.'
+
+        Logger.restore(name = load_path, run_path = run_path, root = root)
+        if args.model == 'deeplabv3_mobilenetv2':
+            checkpoint = torch.load(load_path)
+            model.load_state_dict(checkpoint["model_state"])
+            if teacher is not None:
+                teacher.load_state_dict(checkpoint["model_state"])
+            if teacher_kd is not None:
+                teacher_kd.load_state_dict(checkpoint["model_state"])
+
 
     if teacher is not None:
         teacher.cuda()  
@@ -323,6 +341,10 @@ def main():
         args, train_datasets, evaluation_datasets, test_datasets, model)
     server = Server(args, single_client, train_clients,
                     test_clients, model, metrics)
+    
+    if args.resume is True:
+        server.checkpoint_round = checkpoint['round']
+
     
     if args.self_supervised is True:
         server.set_teacher(teacher)

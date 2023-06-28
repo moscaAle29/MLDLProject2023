@@ -22,10 +22,7 @@ class Server:
         self.teacher_kd_params_dict = None
         self.teacher_kd = None
 
-        if args.resume:
-            self.checkpoint_round = args.round
-        else:
-            self.checkpoint_round = 0
+        self.checkpoint_round = 0
 
 
         self.logger = set_up_logger(self.args)
@@ -42,19 +39,35 @@ class Server:
         self.teacher_kd_params_dict = copy.deepcopy(self.teacher_kd.state_dict())
 
     
-    def save_model(self, round):
-        dir = get_checkpoint_path(self.args)
-        name = f'round{round}.ckpt'
+    def save_model(self, round, save_eval = True):
+        if save_eval:
+            dir = get_checkpoint_path(self.args)
+            name = f'round{round}.ckpt'
 
-        path = os.path.join(dir, name)
+            path = os.path.join(dir, name)
 
-        state = {
-            "round": round,
-            "model_state": self.model_params_dict
-        }
+            state = {
+                "round": round,
+                "model_state": self.model_params_dict
+            }
 
-        torch.save(state, path)
-        self.logger.save(path)
+            torch.save(state, path)
+            self.logger.save(path)
+        else:
+            dir = get_checkpoint_path(self.args)
+            name = f'last_point.ckpt'
+
+            path = os.path.join(dir, name)
+
+            state = {
+                "round": round,
+                "model_state": self.model_params_dict
+            }
+
+            torch.save(state, path)
+            self.logger.save(path)
+
+
 
     def select_clients(self):
         if self.args.setting == 'federated':
@@ -137,7 +150,16 @@ class Server:
                 
                 #log the evaluation
                 self.logger.log_metrics({'Train Mean IoU': train_score['Mean IoU']}, step=r + 1)
-                
+
+                self.metrics['eval_train'].reset()
+
+                #eval on single client
+                if self.single_client is not None:
+                    self.single_client.eval_train(self.metrics['eval_train'])
+                    train_score = self.metrics['eval_train'].get_results()
+                    self.logger.log_metrics({f'Train Mean IoU{self.args.dataset}': train_score['Mean IoU']}, step=r + 1)
+
+
                 #erase the old results before evaluating the updated model
                 self.metrics['eval_train'].reset()
 
@@ -151,7 +173,7 @@ class Server:
 
                 print("FINISH EVALUATION")
 
-            self.save_model(round = r+1)
+                self.save_model(round = r+1)
             
             #if self_supervised is True, update teacher after some intervals or never update
             if self.args.self_supervised is True:
