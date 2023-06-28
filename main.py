@@ -488,6 +488,12 @@ def create_vae_based_clusters(args):
         avg = np.mean(mu_list, axis = 0)
 
         X.append(avg)
+    
+    X = np.array(X)
+
+    print(f'mu_list shape = {np.shape(mu_list)}')
+    print(f'avg     shape = {np.shape(avg)}')
+    print(f'X       shape = {np.shape(X)}')
 
     for test_dataset in test_datasets:
         client_ids.append(test_dataset.client_name)
@@ -507,6 +513,9 @@ def create_vae_based_clusters(args):
         avg = np.mean(mu_list, axis = 0)
 
         X_test.append(avg)
+    
+    X = np.array(X)
+
 
     model_list = []
     res_list = []
