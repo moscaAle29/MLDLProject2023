@@ -64,4 +64,4 @@ class VAE(nn.Module):
     
     def generate_img(self):
 
-        return self.decoder(torch.normal(0, 1, size=(self.zDim,)))
+        return self.decoder(torch.normal(0, 1, size=(self.zDim,)).cuda())
