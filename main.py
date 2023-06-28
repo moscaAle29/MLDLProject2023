@@ -476,11 +476,11 @@ def create_vae_based_clusters(args):
         mu_list = []
         data_loader = DataLoader(train_dataset, batch_size=1)
         for idx, data in enumerate(data_loader, 0):
-            img, _ = data
+            imgs, _ = data
             imgs = imgs.to(device, dtype = torch.float32)
 
             with torch.no_grad():
-                _, mu, _ = net(img)
+                _, mu, _ = net(imgs)
             
             mu_list.append(mu.numpy())
 
@@ -495,11 +495,11 @@ def create_vae_based_clusters(args):
         data_loader = DataLoader(test_dataset, batch_size=1)
 
         for idx, data in enumerate(data_loader, 0):
-            img, _ = data
+            imgs, _ = data
             imgs = imgs.to(device, dtype = torch.float32)
 
             with torch.no_grad():
-                _, mu, _ = net(img)
+                _, mu, _ = net(imgs)
             
             mu_list.append(mu.numpy())
 
