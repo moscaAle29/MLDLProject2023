@@ -126,11 +126,16 @@ def get_transforms(args):
 
         train_transforms = sstr.Compose(augmentations)
 
-        test_transforms = sstr.Compose([
-            sstr.ToTensor(),
-            sstr.Normalize(mean=[0.485, 0.456, 0.406],
-                           std=[0.229, 0.224, 0.225])
-        ])
+        if args.canny is False:
+            test_transforms = sstr.Compose([
+                sstr.ToTensor(),
+                sstr.Normalize(mean=[0.485, 0.456, 0.406],
+                            std=[0.229, 0.224, 0.225])
+            ])
+        else:
+            test_transforms = sstr.Compose([
+                sstr.ToTensor()
+            ])
     elif args.model == 'cnn' or args.model == 'resnet18':
         train_transforms = nptr.Compose([
             nptr.ToTensor(),
@@ -294,22 +299,22 @@ def main():
 
         teacher.cuda()
 
-    if args.task_2_data_collection is True:
-        print("Loading last checkpoint")
-        load_path=os.path.join('checkpoints','task2')
-        #get the ckpt files and sort them
-        past_checkpoints=sorted(os.listdir(load_path))
-        #if we have at least one file then get the last one(last one alphabetically=last saved one)
-        if past_checkpoints!=None:
-            load_path=os.path.join(past_checkpoints[-1])
-        run_path=args.run_path
-        root='.'
+    # if args.task_2_data_collection is True:
+    #     print("Loading last checkpoint")
+    #     load_path=os.path.join('checkpoints','task2')
+    #     #get the ckpt files and sort them
+    #     past_checkpoints=sorted(os.listdir(load_path))
+    #     #if we have at least one file then get the last one(last one alphabetically=last saved one)
+    #     if past_checkpoints!=None:
+    #         load_path=os.path.join(past_checkpoints[-1])
+    #     run_path=args.run_path
+    #     root='.'
         
-        Logger.restore(name = load_path, run_path = run_path, root = root)
-        #before loading the checkpoint we check if there is at least one file
-        if args.model == 'deeplabv3_mobilenetv2' and past_checkpoints!=None:
-            checkpoint = torch.load(load_path)
-            model.load_state_dict(checkpoint["model_state"])
+    #     Logger.restore(name = load_path, run_path = run_path, root = root)
+    #     #before loading the checkpoint we check if there is at least one file
+    #     if args.model == 'deeplabv3_mobilenetv2' and past_checkpoints!=None:
+    #         checkpoint = torch.load(load_path)
+    #         model.load_state_dict(checkpoint["model_state"])
         
     
     model.cuda()
@@ -330,7 +335,7 @@ def main():
         server.set_teacher(teacher)
 
     server.train()
-    server.test()
+    server.test(final_test=True)
 
 # this method is not utilized anymore
 def centralised():

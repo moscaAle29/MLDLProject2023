@@ -50,9 +50,9 @@ class Server:
         torch.save(state, path)
         self.logger.save(path)
 
-    def save_model_client_epochs(self):
+    def save_model_client_epochs(self,num_rounds):
         dir = os.path.join('checkpoints','task2')
-        name = f'{self.args.clients_per_round}clients_{self.args.num_epochs}epochs_{self.args.num_rounds}rounds.ckpt'
+        name = f'{self.args.clients_per_round}clients_{self.args.num_epochs}epochs_{num_rounds}rounds.ckpt'
         path = os.path.join(dir, name)
 
         state = {
@@ -161,41 +161,41 @@ class Server:
 
             if (r+1) % 10 == 0:
                 print("-------------------------EVALUATION ON TRAIN DATASET-------------------------")
+                #erase the old results before evaluating the updated model
+                self.metrics['eval_train'].reset()
+
                 #evaluate the current model before updating
                 self.eval_train()
 
                 #get the train evaluation
                 train_score = self.metrics['eval_train'].get_results()
                 
-                self.output_file.write(f"Eval MIoU(train):{train_score['Mean IoU']}, ")
-                
                 #log the evaluation
                 self.logger.log_metrics({'Train Mean IoU': train_score['Mean IoU']}, step=r + 1)
                 
-                #erase the old results before evaluating the updated model
-                self.metrics['eval_train'].reset()
-
                 print("FINISH EVALUATION")
 
                 print("-------------------------EVALUATION ON TEST DATASET-------------------------")
 
-                self.test(test_phase= False, step= r + 1)
                 self.metrics['test_same_dom'].reset()
                 self.metrics['test_diff_dom'].reset()
+                self.test(test_phase= False, step= r + 1)
 
                 print("FINISH EVALUATION")
 
                 self.save_model(round = r+1)
+                        #save the model given number of clients and epochs
+                if self.args.task_2_data_collection is True:
+                    print("-------------------------SAVING CHECKPOINT-------------------------")
+                    self.save_model_client_epochs(self.args,r+1)
+                    self.output_file.write(f"Eval MIoU(train):{train_score['Mean IoU']}, ")
             
             #if self_supervised is True, update teacher after some intervals or never update
             if self.args.self_supervised is True:
                 if self.args.update_interval != 0:
                     if (r+1) % self.args.update_interval == 0:
                         self.teacher.load_state_dict(self.model_params_dict)
-        #save the model given number of clients and epochs
-        if self.args.task_2_data_collection is True:
-            print("-------------------------SAVING CHECKPOINT-------------------------")
-            self.save_model_client_epochs(self.args)
+
 
 
 
@@ -208,7 +208,7 @@ class Server:
             c.eval_train(self.metrics['eval_train'])
         
 
-    def test(self, test_phase = True, step = None):
+    def test(self, test_phase = True, step = None, final_test=False):
         """
             This method handles the test on the test clients
         """
@@ -216,6 +216,9 @@ class Server:
             print("-------------------------START TESTING-------------------------")
             step = self.args.num_rounds + 1
 
+        same_dom_scores=[]
+        diff_dom_scores=[]
+        
         for c in self.test_clients:
             if c.name == 'test_same_dom':
                 print("SAME DOM")
@@ -223,14 +226,27 @@ class Server:
                 c.test(self.metrics['test_same_dom'], test_phase)
 
                 test_score = self.metrics['test_same_dom'].get_results()
+                if self.args.task_2_test is True:
+                    print(f"same domain: {test_score['Mean IoU']}")
                 self.logger.log_metrics({'Test Same Dom Mean IoU': test_score['Mean IoU']}, step = step)
-                self.output_file.write(f"Test same domain:{test_score['Mean IoU']}, ")
+                
+                if self.args.task_2_data_collection is True:
+                    same_dom_scores.append(test_score['Mean IoU'])
             else:
                 print("DIFF DOM")
 
                 c.test(self.metrics['test_diff_dom'],test_phase)
 
                 test_score = self.metrics['test_diff_dom'].get_results()
+                if self.args.task_2_test is True:
+                    print(f"different domain: {test_score['Mean IoU']}")
                 self.logger.log_metrics({'Test Diff Dom Mean IoU': test_score['Mean IoU']}, step = step)
-                self.output_file.write(f"Test different domain:{test_score['Mean IoU']}\n")
+                
+                if self.args.task_2_data_collection is True:
+                    diff_dom_scores.append(test_score['Mean IoU'])
+                    
+        if self.args.task_2_data_collection is True and final_test is True:
+            self.output_file.write(f"Test same domain:{np.max(same_dom_scores)}, ")
+            self.output_file.write(f"Test different domain:{np.max(diff_dom_scores)}\n")
+        
 

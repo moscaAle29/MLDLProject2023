@@ -25,7 +25,7 @@ def get_parser():
     parser.add_argument('--eval_interval', type=int, default=10, help='eval interval')
     parser.add_argument('--test_interval', type=int, default=10, help='test interval')
     
-    #|| Fed Algorithm selection ||
+    #||| Fed Algorithm selection |||
     parser.add_argument('--FedBN', action='store_true', default=False, help="choose the federated algorithm to apply, leave blank for FedAvg" )
 
     # ||| Transform Options |||
@@ -50,7 +50,11 @@ def get_parser():
     parser.add_argument('--run_path', required=False, help='where to find checkpoints in wandb')
     parser.add_argument('--round', type = int, default= 100, help = 'round at which model state is stored')
     parser.add_argument('--update_interval', type=int, default=0, help='update teacher after n rounds, n= 0 means never')
-    parser.add_argument('--task_2_data_collection', type=bool,action='store_true', default=False,help="Run task 2 with specified number of clients and epochs" )
+    parser.add_argument('--task_2_data_collection',action='store_true', default=False,help="Run task 2 with specified number of clients and epochs" )
 
-
+    #||| test.py Arguments |||
+    parser.add_argument('--task_2_test', action='store_true', default=False,help="Test task 2 loading the checkpoint with specified number of clients, epochs and rounds" )
+    # parser.add_argument('--num_rounds', type=int, help='number of rounds')
+    # parser.add_argument('--num_epochs', type=int, help='number of local epochs')
+    # parser.add_argument('--clients_per_round', type=int, help='number of clients trained per round')
     return parser
