@@ -703,7 +703,7 @@ def get_dataset_vae():
 
     with open(os.path.join(pretrained_root, 'train.txt'), 'r') as f:
         train_data = f.read().splitlines()
-        pretrained_dataset = GTA5DataSet(root=root, list_samples=train_data, transform=transform,
+        pretrained_dataset = GTA5DataSet(root=pretrained_root, list_samples=train_data, transform=transform,
                                             client_name='single client')
 
 
