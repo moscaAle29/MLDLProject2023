@@ -563,7 +563,7 @@ def create_vae_based_clusters1(args):
 def create_vae_based_clusters(args):
     pretrained_dataset, train_datasets, test_datasets = get_dataset_vae()
 
-    net = VAE(input_height = 50).cuda()
+    net = VAE(input_height = 96).cuda()
 
     #pretrain
     print('pretrain on gta5')
@@ -675,7 +675,7 @@ def get_dataset_vae():
     train_datasets = []
 
     #transform
-    resize = sstr.RandomResizedCrop(size=(50,50))
+    resize = sstr.RandomResizedCrop(size=(96,96))
     normalization = sstr.Normalize(mean=[0.485, 0.456, 0.406],
                            std=[0.229, 0.224, 0.225])
     
