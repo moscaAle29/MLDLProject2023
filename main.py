@@ -400,6 +400,8 @@ def create_vae_based_clusters(args):
     root = './data/generated_imgs'
     if not os.path.isdir(root):
         os.makedirs(root)
+    
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     train_datasets, test_datasets = get_dataset_vae()
     # Initialize the network and the Adam optimizer
@@ -413,7 +415,7 @@ def create_vae_based_clusters(args):
         for epoch in range(num_epochs):
             for idx, data in enumerate(data_loader, 0):
                 imgs, _ = data
-                imgs = imgs.cuda()
+                imgs = imgs.to(device, dtype = torch.float32)
 
                 # Feeding a batch of images into the network to obtain the output image, mu, and logVar
                 out, mu, logVar = net(imgs)
@@ -446,7 +448,7 @@ def create_vae_based_clusters(args):
     for epoch in range(num_epochs):
         for img_name in os.listdir(root):
             imgs, _ = torch.load(os.path.join(root, img_name))
-            imgs = imgs.cuda()
+            imgs = imgs.to(device, dtype = torch.float32)
 
             # Feeding a batch of images into the network to obtain the output image, mu, and logVar
             out, mu, logVar = net(imgs)
@@ -475,7 +477,7 @@ def create_vae_based_clusters(args):
         data_loader = DataLoader(train_dataset, batch_size=1)
         for idx, data in enumerate(data_loader, 0):
             img, _ = data
-            img.cuda()
+            imgs = imgs.to(device, dtype = torch.float32)
 
             with torch.no_grad():
                 _, mu, _ = net(img)
@@ -494,7 +496,7 @@ def create_vae_based_clusters(args):
 
         for idx, data in enumerate(data_loader, 0):
             img, _ = data
-            img.cuda()
+            imgs = imgs.to(device, dtype = torch.float32)
 
             with torch.no_grad():
                 _, mu, _ = net(img)
