@@ -568,14 +568,14 @@ def create_vae_based_clusters(args):
     #pretrain
     print('pretrain on gta5')
     data_loader = DataLoader(pretrained_dataset, batch_size=4, shuffle=True, drop_last=True)
-    trainer = pl.Trainer(gpus=1, max_epochs = 20)
+    trainer = pl.Trainer(gpus=1, max_epochs = 1)
     trainer.fit(net, train_dataloaders=data_loader)
 
     #fine_tuning
     for train_dataset in train_datasets:
         print(f'fine tune on client_{train_dataset.client_name}')
         data_loader = DataLoader(train_dataset, batch_size=4, shuffle=True, drop_last=True)
-        trainer = pl.Trainer(gpus=1, max_epochs = 20)
+        trainer = pl.Trainer(gpus=1, max_epochs = 1)
         trainer.fit(net, train_dataloaders=data_loader)
     
     #find representation for each client in laten space
@@ -584,6 +584,8 @@ def create_vae_based_clusters(args):
     X_test = []
     client_ids = []
     test_client_ids = []
+
+    net.cuda()
 
     
     for train_dataset in train_datasets:
