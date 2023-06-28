@@ -7,7 +7,7 @@ import torch.nn.functional as F
 A Convolutional Variational Autoencoder
 """
 class VAE(nn.Module):
-    def __init__(self, imgChannels=1, featureDim=2359296, zDim=256):
+    def __init__(self, imgChannels=1, featureDim=32*42*42, zDim=256):
         super(VAE, self).__init__()
 
         self.zDim = zDim
@@ -48,7 +48,7 @@ class VAE(nn.Module):
         # z is fed back into a fully-connected layers and then into two transpose convolutional layers
         # The generated output is the same size of the original input
         x = F.relu(self.decFC1(z))
-        x = x.view(-1, 32, 192, 192)
+        x = x.view(-1, 32, 42, 42)
         x = F.relu(self.decConv1(x))
         x = torch.sigmoid(self.decConv2(x))
         return x
