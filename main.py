@@ -597,11 +597,12 @@ def create_vae_based_clusters(args):
             img, _ = data
             img = img.cuda()
 
-            x = net.encoder(img)
-            mu = net.fc_mu(x)
+            with torch.no_grad():
+                x = net.encoder(img)
+                mu = net.fc_mu(x)
 
-            mu = mu.squeeze()
-            mu_list.append(mu.cpu().numpy())
+                mu = mu.squeeze()
+                mu_list.append(mu.cpu().numpy())
         
         mu_list = np.array(mu_list)
         avg = np.mean(mu_list, axis = 0)
@@ -619,11 +620,12 @@ def create_vae_based_clusters(args):
             img, _ = data
             img = img.cuda()
 
-            x = net.encoder(img)
-            mu = net.fc_mu(x)
+            with torch.no_grad():
+                x = net.encoder(img)
+                mu = net.fc_mu(x)
 
-            mu = mu.squeeze()
-            mu_list.append(mu.cpu().numpy())
+                mu = mu.squeeze()
+                mu_list.append(mu.cpu().numpy())
         
         mu_list = np.array(mu_list)
         avg = np.mean(mu_list, axis = 0)
