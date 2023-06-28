@@ -576,7 +576,7 @@ def create_vae_based_clusters(args):
         print(f'fine tune on client_{train_dataset.client_name}')
         data_loader = DataLoader(train_dataset, batch_size=4, shuffle=True, drop_last=True)
         trainer = pl.Trainer(gpus=1)
-        trainer.fit(net, train_dataloader=data_loader)
+        trainer.fit(net, train_dataloaders=data_loader)
     
     #find representation for each client in laten space
     print('start clustering')
