@@ -174,6 +174,7 @@ class Server:
                 print("FINISH EVALUATION")
 
                 self.save_model(round = r+1)
+            self.save_model(round = r+1, save_eval=False)
             
             #if self_supervised is True, update teacher after some intervals or never update
             if self.args.self_supervised is True:
