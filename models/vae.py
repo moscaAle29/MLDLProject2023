@@ -25,7 +25,7 @@ class VAE(nn.Module):
         self.decConv2 = nn.ConvTranspose2d(16, imgChannels, 5)
 
     def encoder(self, x):
-
+        
         # Input is fed into 2 convolutional layers sequentially
         # The output feature map are fed into 2 fully-connected layers to predict mean (mu) and variance (logVar)
         # Mu and logVar are used for generating middle representation z and KL divergence loss
@@ -48,7 +48,7 @@ class VAE(nn.Module):
         # z is fed back into a fully-connected layers and then into two transpose convolutional layers
         # The generated output is the same size of the original input
         x = F.relu(self.decFC1(z))
-        x = x.view(-1, 32, 20, 20)
+        x = x.view(-1, 32, 192, 192)
         x = F.relu(self.decConv1(x))
         x = torch.sigmoid(self.decConv2(x))
         return x
