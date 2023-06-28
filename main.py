@@ -482,7 +482,7 @@ def create_vae_based_clusters(args):
             with torch.no_grad():
                 _, mu, _ = net(imgs)
             
-            mu_list.append(mu.numpy())
+            mu_list.append(mu.cpu().numpy())
 
         mu_list = np.array(mu_list)
         avg = np.mean(mu_list, axis = 0)
@@ -501,7 +501,7 @@ def create_vae_based_clusters(args):
             with torch.no_grad():
                 _, mu, _ = net(imgs)
             
-            mu_list.append(mu.numpy())
+            mu_list.append(mu.cpu().numpy())
 
         mu_list = np.array(mu_list)
         avg = np.mean(mu_list, axis = 0)
