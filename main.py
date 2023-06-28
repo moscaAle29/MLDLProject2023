@@ -424,8 +424,8 @@ def create_vae_based_clusters(args):
                 # The loss is the BCE loss combined with the KL divergence to ensure the distribution is learnt
                 kl_divergence = 0.5 * \
                     torch.sum(-1 - logVar + mu.pow(2) + logVar.exp())
-                loss = F.binary_cross_entropy(
-                    out, imgs, reduction = 'sum') + kl_divergence
+                loss = F.mse_loss(
+                    out, imgs, reduction = 'mean') + kl_divergence
 
                 # Backpropagation based on the loss
                 optimizer.zero_grad()
@@ -457,8 +457,8 @@ def create_vae_based_clusters(args):
             # The loss is the BCE loss combined with the KL divergence to ensure the distribution is learnt
             kl_divergence = 0.5 * \
                 torch.sum(-1 - logVar + mu.pow(2) + logVar.exp())
-            loss = F.binary_cross_entropy(
-                out, imgs, size_average=False) + kl_divergence
+            loss = F.mse_loss(
+                out, imgs, reduction='mean') + kl_divergence
 
             # Backpropagation based on the loss
             optimizer.zero_grad()
