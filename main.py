@@ -563,7 +563,7 @@ def create_vae_based_clusters1(args):
 def create_vae_based_clusters(args):
     pretrained_dataset, train_datasets, test_datasets = get_dataset_vae()
 
-    net = VAE().cuda()
+    net = VAE(input_height = 50).cuda()
 
     #pretrain
     print('pretrain on gta5')
