@@ -655,12 +655,15 @@ def create_vae_based_clusters(args):
     k_means_model = model_list[best_id]
 
     clusters_of_test_clients = k_means_model.predict(X_test)
+    print('clusters_of_test_clients')
+    print(clusters_of_test_clients)
     # if self.args.force_k == 0:
     #    k_means_relative_path = "_model.pkl"
     # else:
     #    k_means_relative_path = f"_model_{self.args.force_k}"
     #pickle.dump(self.k_means_model, open(self.cluster_path.split(".json")[0] + k_means_relative_path, "wb"))
     k_size = k_list[best_id]
+    print(f'k_size{k_size}')
     #self.writer.write(f"best k {self.k_size}")
     #self.writer.write(f"best silhouette_score {score_list[best_id]}")
     cluster_mapping = {}
