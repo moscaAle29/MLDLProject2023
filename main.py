@@ -414,7 +414,6 @@ def create_vae_based_clusters(args):
         num_epochs = 20
         for epoch in range(num_epochs):
             for idx, data in enumerate(data_loader, 0):
-                print(idx)
                 imgs, _ = data
                 imgs = imgs.to(device, dtype = torch.float32)
 
