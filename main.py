@@ -30,7 +30,7 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
 from models.vae import VAE
-import torchvision.transforms.functional as F
+import torch.nn.functional as F
 
 from torch.utils.data import DataLoader
 
