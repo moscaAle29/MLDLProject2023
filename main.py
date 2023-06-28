@@ -772,12 +772,6 @@ def main():
     server = Server(args, single_client, train_clients,
                     test_clients, model, metrics)
 
-    if args.self_supervised is True:
-        server.set_teacher(teacher)
-
-    if args.kd is True:
-        server.set_teacher_kd(teacher_kd)
-
     if args.clustering is not None:
         # associate client to its cluster
         if args.clustering == 'ladd':
@@ -800,6 +794,12 @@ def main():
         server.number_of_clusters = len(cluster_mapping.items())
         server.model_params_dict = [copy.deepcopy(
             server.model_params_dict) for i in range(server.number_of_clusters)]
+    
+    if args.self_supervised is True:
+        server.set_teacher(teacher)
+
+    if args.kd is True:
+        server.set_teacher_kd(teacher_kd)
 
     server.train()
     server.test()
