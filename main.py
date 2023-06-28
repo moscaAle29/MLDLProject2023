@@ -414,6 +414,7 @@ def create_vae_based_clusters(args):
         num_epochs = 20
         for epoch in range(num_epochs):
             for idx, data in enumerate(data_loader, 0):
+                print(idx)
                 imgs, _ = data
                 imgs = imgs.to(device, dtype = torch.float32)
 
@@ -424,7 +425,7 @@ def create_vae_based_clusters(args):
                 kl_divergence = 0.5 * \
                     torch.sum(-1 - logVar + mu.pow(2) + logVar.exp())
                 loss = F.binary_cross_entropy(
-                    out, imgs, size_average=False) + kl_divergence
+                    out, imgs, reduction = 'sum') + kl_divergence
 
                 # Backpropagation based on the loss
                 optimizer.zero_grad()
@@ -447,7 +448,7 @@ def create_vae_based_clusters(args):
 
     for epoch in range(num_epochs):
         for img_name in os.listdir(root):
-            imgs, _ = torch.load(os.path.join(root, img_name))
+            imgs= torch.load(os.path.join(root, img_name))
             imgs = imgs.to(device, dtype = torch.float32)
 
             # Feeding a batch of images into the network to obtain the output image, mu, and logVar
