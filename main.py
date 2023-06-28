@@ -632,7 +632,7 @@ def create_vae_based_clusters(args):
 
         X_test.append(avg)
 
-    X_test = np.array(X)
+    X_test = np.array(X_test)
 
     model_list = []
     res_list = []
