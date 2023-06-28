@@ -35,7 +35,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 from pl_bolts.models.autoencoders import VAE
-import lightning.pytorch as pl
+import pytorch_lightning as pl
 
 
 
