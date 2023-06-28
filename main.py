@@ -569,7 +569,7 @@ def create_vae_based_clusters(args):
     print('pretrain on gta5')
     data_loader = DataLoader(pretrained_dataset, batch_size=4, shuffle=True, drop_last=True)
     trainer = pl.Trainer(gpus=1)
-    trainer.fit(net, train_dataloader=data_loader)
+    trainer.fit(net, train_dataloaders=data_loader)
 
     #fine_tuning
     for train_dataset in train_datasets:
