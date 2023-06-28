@@ -29,10 +29,13 @@ from PIL import Image
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
-from models.vae import VAE
+#from models.vae import VAE
 import torch.nn.functional as F
 
 from torch.utils.data import DataLoader
+
+from pl_bolts.models.autoencoders import VAE
+import lightning.pytorch as pl
 
 
 
@@ -396,7 +399,7 @@ def create_style_based_clusters(args):
 
     return cluster_mapping
 
-def create_vae_based_clusters(args):
+def create_vae_based_clusters1(args):
     root = './data/generated_imgs'
     if not os.path.isdir(root):
         os.makedirs(root)
@@ -557,6 +560,116 @@ def create_vae_based_clusters(args):
     print(cluster_mapping)
     return cluster_mapping
 
+def create_vae_based_clusters(args):
+    pretrained_dataset, train_datasets, test_datasets = get_dataset_vae()
+
+    net = VAE().cuda()
+
+    #pretrain
+    print('pretrain on gta5')
+    data_loader = DataLoader(pretrained_dataset, batch_size=4, shuffle=True, drop_last=True)
+    trainer = pl.Trainer(gpus=1)
+    trainer.fit(net, train_dataloader=data_loader)
+
+    #fine_tuning
+    for train_dataset in train_datasets:
+        print(f'fine tune on client_{train_dataset.client_name}')
+        data_loader = DataLoader(train_dataset, batch_size=4, shuffle=True, drop_last=True)
+        trainer = pl.Trainer(gpus=1)
+        trainer.fit(net, train_dataloader=data_loader)
+    
+    #find representation for each client in laten space
+    print('start clustering')
+    X = []
+    X_test = []
+    client_ids = []
+    test_client_ids = []
+
+    
+    for train_dataset in train_datasets:
+        data_loader = DataLoader(train_dataset, batch_size=1)
+        client_ids.append(train_dataset.client_name)
+        mu_list = []
+
+        for idx, data in enumerate(data_loader, 0):
+            img, _ = data
+            img = img.cuda()
+
+            x = net.encoder(img)
+            mu = net.fc_mu(x)
+
+            mu = mu.squeeze()
+            mu_list.append(mu.cpu().numpy())
+        
+        mu_list = np.array(mu_list)
+        avg = np.mean(mu_list, axis = 0)
+
+        X.append(avg)
+
+    X = np.array(X)
+
+    for test_dataset in test_datasets:
+        data_loader = DataLoader(test_dataset, batch_size=1)
+        test_client_ids.append(test_dataset.client_name)
+        mu_list = []
+
+        for idx, data in enumerate(data_loader, 0):
+            img, _ = data
+            img = img.cuda()
+
+            x = net.encoder(img)
+            mu = net.fc_mu(x)
+
+            mu = mu.squeeze()
+            mu_list.append(mu.cpu().numpy())
+        
+        mu_list = np.array(mu_list)
+        avg = np.mean(mu_list, axis = 0)
+
+        X_test.append(avg)
+
+    X_test = np.array(X)
+
+    model_list = []
+    res_list = []
+    score_list = []
+
+    # if self.args.force_k == 0:
+    #    k_list = list(range(4, 20))
+    # else:
+    #    k_list = [self.args.force_k]
+
+    k_list = list(range(4, 20))
+
+    for k_size in k_list:
+        model = KMeans(n_clusters=k_size, n_init=10).fit(X)
+        model_list.append(model)
+        res_list.append(model.labels_)
+        score_list.append(silhouette_score(X, model.labels_))
+
+    best_id = np.argmax(score_list)
+    k_means_model = model_list[best_id]
+
+    clusters_of_test_clients = k_means_model.predict(X_test)
+    # if self.args.force_k == 0:
+    #    k_means_relative_path = "_model.pkl"
+    # else:
+    #    k_means_relative_path = f"_model_{self.args.force_k}"
+    #pickle.dump(self.k_means_model, open(self.cluster_path.split(".json")[0] + k_means_relative_path, "wb"))
+    k_size = k_list[best_id]
+    #self.writer.write(f"best k {self.k_size}")
+    #self.writer.write(f"best silhouette_score {score_list[best_id]}")
+    cluster_mapping = {}
+    for cluster_id in range(k_size):
+        cluster_mapping[cluster_id] = [client_ids[i]
+                                       for i, val in enumerate(res_list[best_id])
+                                       if val == cluster_id]
+    for i, cluster_id in enumerate(clusters_of_test_clients):
+        cluster_mapping[cluster_id].append(test_client_ids[i])
+
+    print(cluster_mapping)
+    return cluster_mapping
+
 def get_dataset_vae():
     root = 'data/idda'
     train_datasets = []
@@ -586,7 +699,15 @@ def get_dataset_vae():
                                             client_name='test_diff_dom')
     test_datasets = [test_same_dom_dataset, test_diff_dom_dataset]
 
-    return train_datasets, test_datasets
+    pretrained_root = 'data/gta5'
+
+    with open(os.path.join(pretrained_root, 'train.txt'), 'r') as f:
+        train_data = f.read().splitlines()
+        pretrained_dataset = GTA5DataSet(root=root, list_samples=train_data, transform=transform,
+                                            client_name='single client')
+
+
+    return pretrained_dataset, train_datasets, test_datasets
 
 
 def main():
