@@ -174,7 +174,7 @@ class Server:
         for cluster_id, u in updates:
             cluster_update.setdefault(cluster_id, []).append(u)
 
-        for cluster_id, updates in cluster_update:
+        for cluster_id, updates in cluster_update.items():
             self.aggregate(updates, cluster_id)
 
     def aggregate(self, updates, cluster_id=None):
