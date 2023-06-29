@@ -105,6 +105,7 @@ class Client:
         #dict_all_epoch_losses = defaultdict(lambda: 0)
 
         for cur_step, (images, labels) in enumerate(self.train_loader):
+            #if we use canny we have to feed transformed images to the model
             if self.args.canny is True:
                 canny_transform= Canny()
                 new_images=[]
@@ -131,6 +132,7 @@ class Client:
         optimizer = optim.SGD(self.model.parameters(), lr=self.args.lr, momentum=0.9)
         self.model.train()
 
+        #run the specified number of epochs
         for epoch in range(self.args.num_epochs):
             self.run_epoch(epoch, optimizer)
         
@@ -187,11 +189,4 @@ class Client:
                                 "prediction": {"mask_data" : prediction.numpy(), "class_labels": class_labels},
                                 "ground_truth": {"mask_data": labels.numpy(), "class_labels": class_labels}
                             }
-                    #img2 = wandb.Image(prediction.numpy())
-                    #img3 = wandb.Image(labels.numpy())
-
-                    #data.append([img1, img2, img3])
-                    #print(f'number of logged row {len(data)}')
-                    #self.logger.log_image(key=self.name, images = [img1, img2, img3])
-                    #self.logger.log_table(key=self.name, columns=columns, data=data)
                     self.logger.log_image(key=f'{self.name}-{i}', images = [img1], masks = [masks])

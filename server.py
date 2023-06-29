@@ -35,7 +35,7 @@ class Server:
         self.teacher = teacher
         self.teacher_params_dict = copy.deepcopy(self.teacher.state_dict())
 
-    
+    #save the models checkpoints
     def save_model(self, round):
         dir = get_checkpoint_path(self.args)
         name = f'round{round}.ckpt'
@@ -49,10 +49,11 @@ class Server:
 
         torch.save(state, path)
         self.logger.save(path)
-
-    def save_model_client_epochs(self,num_rounds):
+        
+    #save the model's checkpoint for a given epoch and number of clients
+    def save_model_client_epochs(self):
         dir = os.path.join('checkpoints','task2')
-        name = f'{self.args.clients_per_round}clients_{self.args.num_epochs}epochs_{num_rounds}rounds.ckpt'
+        name = f'{self.args.clients_per_round}clients_{self.args.num_epochs}epochs.ckpt'
         path = os.path.join(dir, name)
 
         state = {
@@ -64,7 +65,7 @@ class Server:
 
         torch.save(state, path)
         self.logger.save(path)
-        self.output_file.write(f"n_clients:{self.args.clients_per_round}, n_epochs:{self.args.num_epochs}, n_rounds:{self.args.num_rounds} ")
+        self.output_file.write(f"n_clients:{self.args.clients_per_round}, n_epochs:{self.args.num_epochs}")
 
     def select_clients(self):
         if self.args.setting == 'federated':
@@ -84,24 +85,24 @@ class Server:
         global count_train, E
         count_train+=1
         updates = []
-
+        #for all the clients
         for client in clients:
             print(f'client-{client.name}')
-
+            #update the client's model with the one saved in the server
             client.model.load_state_dict(self.model_params_dict)
-
+            #if we use pseudolabels do the same with the teacher
             if self.args.self_supervised is True:
                 client.set_teacher(self.teacher)
-
+            #train the client and return the number of datapoints it trained on and the updated weights
             update = client.train()
             updates.append(update)
-
+        #launch the selected aggregation algorithm
         if self.args.FedBN is True:
             if count_train % E == 0:
                 self.fedBN(updates)
         else:
             self.fedAvg(updates)
-
+    #use the fedAvg algorithm for aggregation
     def fedAvg(self, updates):
         """
         This method handles the FedAvg aggregation
@@ -110,25 +111,30 @@ class Server:
         """
         global_num_samples = 0
         global_param = OrderedDict()
-
+        #count the total number of datapoint in all the clients
         for local_num_samples,_ in updates:
             global_num_samples += local_num_samples
 
         for local_num_samples, local_param in updates:
+            #compute the percentage of datapoints used by the current client and use it as the weight
             weight = local_num_samples / global_num_samples
 
             for key, value in local_param.items():
+                #get the old value
                 old_value = global_param.get(key, 0)
+                #if the value is integer => we don't have a weight
                 if type(old_value) == int:
                     new_value = weight * value
                 else:
                     new_value = old_value + weight * value
-
+                #save the new parameters 
                 global_param[key] = new_value.to('cuda')
-        
+        #load the new weights in the server's model
         self.model.load_state_dict(global_param)
+        #save the parameters
         self.model_params_dict = copy.deepcopy(self.model.state_dict())
 
+    #use the fedBN algorithm for aggregation
     def fedBN(self, updates):
         global_param = OrderedDict()
         n_clients=len(updates)
@@ -184,17 +190,16 @@ class Server:
                 print("FINISH EVALUATION")
 
                 self.save_model(round = r+1)
-                        #save the model given number of clients and epochs
             
             #if self_supervised is True, update teacher after some intervals or never update
             if self.args.self_supervised is True:
                 if self.args.update_interval != 0:
                     if (r+1) % self.args.update_interval == 0:
                         self.teacher.load_state_dict(self.model_params_dict)
-        
+        #at the end of the training save the model we have adn the checkpoint
         if self.args.task_2_data_collection is True:
             print("-------------------------SAVING CHECKPOINT-------------------------")
-            self.save_model_client_epochs(r+1)
+            self.save_model_client_epochs()
             self.output_file.write(f"Eval MIoU(train):{train_score['Mean IoU']}, ")
 
     def eval_train(self):
@@ -223,10 +228,11 @@ class Server:
                 c.test(self.metrics['test_same_dom'], test_phase)
 
                 test_score = self.metrics['test_same_dom'].get_results()
+                #for testing purposes
                 if self.args.task_2_test is True:
                     print(f"same domain: {test_score['Mean IoU']}")
                 self.logger.log_metrics({'Test Same Dom Mean IoU': test_score['Mean IoU']}, step = step)
-                
+                #save the scores on a list
                 if self.args.task_2_data_collection is True:
                     same_dom_scores.append(test_score['Mean IoU'])
             else:
@@ -235,13 +241,15 @@ class Server:
                 c.test(self.metrics['test_diff_dom'],test_phase)
 
                 test_score = self.metrics['test_diff_dom'].get_results()
+                #for testing purposes
                 if self.args.task_2_test is True:
                     print(f"different domain: {test_score['Mean IoU']}")
                 self.logger.log_metrics({'Test Diff Dom Mean IoU': test_score['Mean IoU']}, step = step)
-                
+                #save the scores on a list
                 if self.args.task_2_data_collection is True:
                     diff_dom_scores.append(test_score['Mean IoU'])
-                    
+        
+        #for sata collection we need to save the values of the chosen metrics           
         if self.args.task_2_data_collection is True and final_test is True:
             self.output_file.write(f"Test same domain:{np.max(same_dom_scores)}, ")
             self.output_file.write(f"Test different domain:{np.max(diff_dom_scores)}\n")

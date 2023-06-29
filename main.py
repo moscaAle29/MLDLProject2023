@@ -92,7 +92,6 @@ def create_style(args):
 
 
 def get_transforms(args):
-    # TODO: test your data augmentation by changing the transforms here!
     if args.model == 'deeplabv3_mobilenetv2':
 
         augmentations = []
@@ -104,12 +103,15 @@ def get_transforms(args):
             augmentations.append(sstr.RandomResizedCrop(size = size, scale = scale))
  
         if args.canny is True:
+            #canny edges transform
             augmentations.append(sstr.Canny())
 
         if args.flip is True:
+            #randon horizonal flip transform
             augmentations.append(sstr.RandomHorizontalFlip())
 
         if args.random_rotation is True:
+            #random rotation transform
             augmentations.append(sstr.RandomRotation(30))
         
         if args.domain_adapt == 'fda':
@@ -117,6 +119,7 @@ def get_transforms(args):
             augmentations.append(sstr.TargetStyle(dir))
         
         if args.jitter is True:
+            #color jitter transform
             augmentations.append(sstr.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4))
 
         augmentations.append(sstr.ToTensor())
@@ -185,19 +188,8 @@ def get_datasets(args):
             train_data = f.read().splitlines()
             train_datasets.append(GTA5DataSet(root=root, list_samples=train_data, transform=train_transforms,
                                               client_name='single client'))
-    # #TODO: implement cityscapes dataset
-    # elif args.dataset == 'cityscapes':
-    #     # the repositary where data and metadata is stored
-    #     root = 'data/cityscapes'
-    #     with open(os.path.join(root, 'train.txt'), 'r') as f:
-    #         train_data = f.read().splitlines()
-    #         train_datasets.append(GTA5DataSet(root=root, list_samples=train_data, transform=train_transforms,
-    #                                           client_name='single client'))
     else:
         raise NotImplementedError
-    #shuffle dataset
-    # if train_datasets!= None:
-    #     random.shuffle(train_datasets)
         
     # determine evaluation and testing datasets
     if args.dataset2 == 'idda':
@@ -277,6 +269,7 @@ def gen_clients(args, train_datasets, evaluation_datasets, test_datasets, model)
 
 
 def main():
+    #get the command line arguments
     parser = get_parser()
     args = parser.parse_args()
     set_seed(args.seed)
@@ -284,15 +277,18 @@ def main():
     print(f'Initializing model...')
     model = model_init(args)
     
+    #self_supervised= use pseudo-labels
     if args.self_supervised is True:
         print('Loading pretrained model...')
         teacher = model_init(args)
+        #load saved checkpoint
         load_path = os.path.join('checkpoints', 'centralized', 'gta5', 'idda', f'round{args.round}.ckpt')
         run_path = args.run_path
         root = '.'
 
         Logger.restore(name = load_path, run_path = run_path, root = root)
         if args.model == 'deeplabv3_mobilenetv2':
+            #load the data into the model
             checkpoint = torch.load(load_path)
             model.load_state_dict(checkpoint["model_state"])
             teacher.load_state_dict(checkpoint["model_state"])
