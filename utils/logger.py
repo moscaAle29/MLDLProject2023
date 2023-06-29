@@ -42,7 +42,7 @@ def get_job_name(args):
         job_name += "testResize_"
     if args.domain_adapt is not None:
         job_name += f"{args.domain_adapt}_"
-    if args.load_pretrained is not None:
+    if args.load_pretrained:
         job_name += "load_pretrained_"
 
 
