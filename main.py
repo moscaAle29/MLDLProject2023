@@ -76,6 +76,12 @@ def model_init(args):
 
 
 def create_style(args):
+    augmentations = []
+    size = (args.h_resize, args.w_resize)
+
+    augmentations.append(sstr.RandomResizedCrop(size = size))
+    transforms = sstr.Compose(augmentations)
+
     if args.dataset2 == 'idda':
         root = 'data/idda'
         dir = os.path.join(root, 'train')
@@ -94,6 +100,7 @@ def create_style(args):
                     path_to_image = os.path.join(
                         root, 'images', f'{filename}.jpg')
                     img = Image.open(path_to_image)
+                    img = transforms(img)
                     img_np = np.asanyarray(img, dtype=np.float32)
 
                     fft_magnitudes.append(extract_amp_spectrum(img_np))
@@ -164,18 +171,14 @@ def get_transforms(args):
 
         augmentations = []
 
+        if args.rrc_transform is True:
+            size = (args.h_resize, args.w_resize)
+            augmentations.append(sstr.RandomResizedCrop(size = size))
+
         if args.domain_adapt == 'fda':
             dir = create_style(args)
             augmentations.append(sstr.TargetStyle(dir, args.fda_alpha))
-
-
-        if args.rrc_transform is True:
-            size = (args.h_resize, args.w_resize)
-            scale = (args.min_scale, args.max_scale)
-
-            augmentations.append(
-                sstr.RandomResizedCrop(size=size, scale=scale))
-
+ 
         if args.flip is True:
             augmentations.append(sstr.RandomHorizontalFlip())
 
@@ -753,6 +756,24 @@ def main():
             if teacher_kd is not None:
                 teacher_kd.load_state_dict(checkpoint["model_state"])
 
+    #resume model if specified
+    if args.resume is True:
+        print('Loading pretrained model...')
+        project = args.run_path.split('/')[1]
+        repo = project.split('_')
+        load_path = os.path.join('checkpoints',repo[0], repo[1], repo[2] ,f'last_point.ckpt')
+        run_path = args.run_path
+        root = '.'
+
+        Logger.restore(name = load_path, run_path = run_path, root = root)
+        if args.model == 'deeplabv3_mobilenetv2':
+            checkpoint = torch.load(load_path)
+            model.load_state_dict(checkpoint["model_state"])
+            if teacher is not None:
+                teacher.load_state_dict(checkpoint["model_state"])
+            if teacher_kd is not None:
+                teacher_kd.load_state_dict(checkpoint["model_state"])
+
 
     if teacher is not None:
         teacher.cuda()  
@@ -794,6 +815,10 @@ def main():
         server.number_of_clusters = len(cluster_mapping.items())
         server.model_params_dict = [copy.deepcopy(
             server.model_params_dict) for i in range(server.number_of_clusters)]
+    
+    if args.resume is True:
+        server.checkpoint_round = checkpoint['round']
+
     
     if args.self_supervised is True:
         server.set_teacher(teacher)
