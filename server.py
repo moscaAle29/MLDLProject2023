@@ -317,15 +317,15 @@ class Server:
         else:
             if self.args.swat is not True:
                 for cluster_id in range(self.number_of_clusters):
-                    self.teacher_kd_params_dict[cluster_id] = self.model_params_dict[cluster_id]
+                    self.teacher_params_dict[cluster_id] = self.model_params_dict[cluster_id]
             else:
                 if round < self.args.swa_start:
                     for cluster_id in range(self.number_of_clusters):
-                        self.teacher_kd_params_dict[cluster_id] = self.model_params_dict[cluster_id]
+                        self.teacher_params_dict[cluster_id] = self.model_params_dict[cluster_id]
                 else:
                     alpha = 1 / ((round - self.args.swa_start) + 1)
                     for cluster_id in range(self.number_of_clusters):
-                        teacher = self.teacher_kd_params_dict[cluster_id]
+                        teacher = self.teacher_params_dict[cluster_id]
                         model = self.model_params_dict[cluster_id]
 
                         for key in teacher:
