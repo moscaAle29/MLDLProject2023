@@ -62,6 +62,13 @@ def model_init(args):
 
 
 def create_style(args):
+    augmentations = []
+    size = (args.h_resize, args.w_resize)
+    scale = (args.min_scale, args.max_scale)
+
+    augmentations.append(sstr.RandomResizedCrop(size = size, scale = scale))
+    transforms = sstr.Compose(augmentations)
+
     if args.dataset2 == 'idda':
         root = 'data/idda'
         dir = os.path.join(root, 'bank_A')
@@ -80,6 +87,7 @@ def create_style(args):
                     path_to_image = os.path.join(
                         root, 'images', f'{filename}.jpg')
                     img = Image.open(path_to_image)
+                    img = transforms(img)
                     img_np = np.asanyarray(img, dtype=np.float32)
 
                     fft_magnitudes.append(extract_amp_spectrum(img_np))
@@ -97,16 +105,15 @@ def get_transforms(args):
 
         augmentations = []
 
-        if args.domain_adapt == 'fda':
-            dir = create_style(args)
-            augmentations.append(sstr.TargetStyle(dir, args.fda_alpha))
-
-
         if args.rrc_transform is True:
             size = (args.h_resize, args.w_resize)
             scale = (args.min_scale, args.max_scale)
 
             augmentations.append(sstr.RandomResizedCrop(size = size, scale = scale))
+
+        if args.domain_adapt == 'fda':
+            dir = create_style(args)
+            augmentations.append(sstr.TargetStyle(dir, args.fda_alpha))
  
         if args.flip is True:
             augmentations.append(sstr.RandomHorizontalFlip())
