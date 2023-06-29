@@ -101,7 +101,7 @@ class Client:
             kd_outputs = self.teacher_kd(images)['out']
 
             #generating mask for kd loss
-            pseudo_labels = self.pseudo_label_generator(None, images, model=self.teacher_kd_model)
+            pseudo_labels = self.pseudo_label_generator(None, images, model=self.teacher_kd)
             mask = torch.ones(pseudo_labels.shape).double().to(self.device)
             mask = torch.where(pseudo_labels != 255, mask, 0.) if pseudo_labels is not None else None
 
