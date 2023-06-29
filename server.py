@@ -16,7 +16,7 @@ class Server:
         self.test_clients = test_clients
         self.model = model
         self.metrics = metrics
-        self.model_params_dict = copy.deepcopy(self.model.state_dict()).cpu()
+        self.model_params_dict = {k: v.cpu() for k, v in model.state_dict()}
         self.teacher_params_dict = None
         self.teacher = None
         self.teacher_kd_params_dict = None
