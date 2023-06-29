@@ -191,14 +191,11 @@ class Server:
                 if self.args.update_interval != 0:
                     if (r+1) % self.args.update_interval == 0:
                         self.teacher.load_state_dict(self.model_params_dict)
-            if self.args.task_2_data_collection is True:
-                print("-------------------------SAVING CHECKPOINT-------------------------")
-                self.save_model_client_epochs(r+1)
-                self.output_file.write(f"Eval MIoU(train):{train_score['Mean IoU']}, ")
-
-
-
-
+        
+        if self.args.task_2_data_collection is True:
+            print("-------------------------SAVING CHECKPOINT-------------------------")
+            self.save_model_client_epochs(r+1)
+            self.output_file.write(f"Eval MIoU(train):{train_score['Mean IoU']}, ")
 
     def eval_train(self):
         """
