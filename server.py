@@ -185,16 +185,16 @@ class Server:
 
                 self.save_model(round = r+1)
                         #save the model given number of clients and epochs
-                if self.args.task_2_data_collection is True:
-                    print("-------------------------SAVING CHECKPOINT-------------------------")
-                    self.save_model_client_epochs(r+1)
-                    self.output_file.write(f"Eval MIoU(train):{train_score['Mean IoU']}, ")
             
             #if self_supervised is True, update teacher after some intervals or never update
             if self.args.self_supervised is True:
                 if self.args.update_interval != 0:
                     if (r+1) % self.args.update_interval == 0:
                         self.teacher.load_state_dict(self.model_params_dict)
+            if self.args.task_2_data_collection is True:
+                print("-------------------------SAVING CHECKPOINT-------------------------")
+                self.save_model_client_epochs(r+1)
+                self.output_file.write(f"Eval MIoU(train):{train_score['Mean IoU']}, ")
 
 
 
