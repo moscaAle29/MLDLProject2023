@@ -113,7 +113,7 @@ class Client:
         return loss_tot, outputs
     
     def generate_update(self):
-        return {k: v.cpu() for k, v in self.model.state_dict()}
+        return {k: v.cpu() for k, v in self.model.state_dict().items()}
 
     def run_epoch(self, cur_epoch, optimizer):
         """

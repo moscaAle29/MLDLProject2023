@@ -16,7 +16,7 @@ class Server:
         self.test_clients = test_clients
         self.model = model
         self.metrics = metrics
-        self.model_params_dict = {k: v.cpu() for k, v in model.state_dict()}
+        self.model_params_dict = {k: v.cpu() for k, v in model.state_dict().items()}
         self.teacher_params_dict = None
         self.teacher = None
         self.teacher_kd_params_dict = None
@@ -89,7 +89,9 @@ class Server:
         for client in clients:
             print(f'client-{client.name}')
 
-            client.model.load_state_dict(self.model_params_dict.cuda())
+            client.model.cpu()
+            client.model.load_state_dict(self.model_params_dict)
+            client.model.cuda()
 
             if self.args.self_supervised is True:
                 client.set_teacher(self.teacher)
