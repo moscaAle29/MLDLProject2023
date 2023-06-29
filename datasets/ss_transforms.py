@@ -1,11 +1,13 @@
 import os
 import torch
 import torchvision.transforms.functional as F
+import torchvision.transforms as T
 import random
 import numbers
 import numpy as np
 import collections
-from PIL import Image, ImageFilter
+import PIL
+from PIL import Image, ImageFilter, ImageOps
 import warnings
 import math
 import cv2
@@ -813,6 +815,8 @@ class Canny(object):
         """
         assert self.algorithm in ["standard", "otsu"], "The selected algorithm is not implemented, please select another one"
         
+        if not isinstance(img, PIL.Image.Image):
+            return
         #img = np.asarray(img, dtype=np.uint8)
         #gray_img = np.asarray(cv2.cvtColor(img,cv2.COLOR_RGB2GRAY),dtype=np.uint8)
         
