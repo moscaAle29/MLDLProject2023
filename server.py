@@ -16,7 +16,7 @@ class Server:
         self.test_clients = test_clients
         self.model = model
         self.metrics = metrics
-        self.model_params_dict = copy.deepcopy(self.model.state_dict())
+        self.model_params_dict = copy.deepcopy(self.model.state_dict()).cpu()
         self.teacher_params_dict = None
         self.teacher = None
         self.teacher_kd_params_dict = None
@@ -89,7 +89,7 @@ class Server:
         for client in clients:
             print(f'client-{client.name}')
 
-            client.model.load_state_dict(self.model_params_dict)
+            client.model.load_state_dict(self.model_params_dict.cuda())
 
             if self.args.self_supervised is True:
                 client.set_teacher(self.teacher)
@@ -121,9 +121,9 @@ class Server:
                 else:
                     new_value = old_value + weight * value
 
-                global_param[key] = new_value.to('cuda')
+                global_param[key] = new_value
         
-        self.model.load_state_dict(global_param)
+        self.model.load_state_dict(global_param.cuda())
         self.model_params_dict = copy.deepcopy(self.model.state_dict())
 
 
