@@ -64,9 +64,8 @@ def model_init(args):
 def create_style(args):
     augmentations = []
     size = (args.h_resize, args.w_resize)
-    scale = (args.min_scale, args.max_scale)
 
-    augmentations.append(sstr.RandomResizedCrop(size = size, scale = scale))
+    augmentations.append(sstr.RandomResizedCrop(size = size))
     transforms = sstr.Compose(augmentations)
 
     if args.dataset2 == 'idda':
@@ -107,9 +106,7 @@ def get_transforms(args):
 
         if args.rrc_transform is True:
             size = (args.h_resize, args.w_resize)
-            scale = (args.min_scale, args.max_scale)
-
-            augmentations.append(sstr.RandomResizedCrop(size = size, scale = scale))
+            augmentations.append(sstr.RandomResizedCrop(size = size))
 
         if args.domain_adapt == 'fda':
             dir = create_style(args)
