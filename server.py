@@ -245,5 +245,6 @@ class Server:
         if self.args.task_2_data_collection is True and final_test is True:
             self.output_file.write(f"Test same domain:{np.max(same_dom_scores)}, ")
             self.output_file.write(f"Test different domain:{np.max(diff_dom_scores)}\n")
+            self.output_file.flush()
         
 
