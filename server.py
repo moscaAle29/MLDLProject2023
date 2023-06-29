@@ -48,7 +48,7 @@ class Server:
 
     
     def save_model(self, round, save_eval = True):
-        if self.number_of_clusters is not None:
+        if self.number_of_clusters is None:
             if save_eval:
                 dir = get_checkpoint_path(self.args)
                 name = f'round{round}.ckpt'
