@@ -123,8 +123,10 @@ class Server:
 
                 global_param[key] = new_value
         
-        self.model.load_state_dict(global_param.cuda())
+        self.model.cpu()
+        self.model.load_state_dict(global_param)
         self.model_params_dict = copy.deepcopy(self.model.state_dict())
+        self.model.cuda()
 
 
     def train(self):
