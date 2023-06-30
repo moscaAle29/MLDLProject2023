@@ -824,6 +824,9 @@ class Canny(object):
             image = img.convert("L")
             image = image.filter(ImageFilter.FIND_EDGES)
 
+        transform = T.Compose([T.ToTensor()])
+
+        tensor = transform(image)
         if lbl is not None:
             return image, lbl
         else:

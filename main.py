@@ -277,7 +277,7 @@ def main():
     print(f'Initializing model...')
     model = model_init(args)
     
-    #self_supervised= use pseudo-labels
+    #self_supervised = use pseudo-labels
     if args.self_supervised is True:
         print('Loading pretrained model...')
         teacher = model_init(args)
@@ -294,25 +294,7 @@ def main():
             teacher.load_state_dict(checkpoint["model_state"])
 
         teacher.cuda()
-
-    # if args.task_2_data_collection is True:
-    #     print("Loading last checkpoint")
-    #     load_path=os.path.join('checkpoints','task2')
-    #     #get the ckpt files and sort them
-    #     past_checkpoints=sorted(os.listdir(load_path))
-    #     #if we have at least one file then get the last one(last one alphabetically=last saved one)
-    #     if past_checkpoints!=None:
-    #         load_path=os.path.join(past_checkpoints[-1])
-    #     run_path=args.run_path
-    #     root='.'
         
-    #     Logger.restore(name = load_path, run_path = run_path, root = root)
-    #     #before loading the checkpoint we check if there is at least one file
-    #     if args.model == 'deeplabv3_mobilenetv2' and past_checkpoints!=None:
-    #         checkpoint = torch.load(load_path)
-    #         model.load_state_dict(checkpoint["model_state"])
-        
-    
     model.cuda()
     print('Done.')
 
