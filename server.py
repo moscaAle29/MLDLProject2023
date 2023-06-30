@@ -85,7 +85,9 @@ class Server:
                     name = f'round{round}.ckpt'
 
                     repo = os.path.join(dir, cluster)
-                    os.mkdir(repo)
+                    if not os.path.exists(repo):
+                        os.makedirs(repo)
+
                     path = os.path.join(repo, name)
 
                     state = {
@@ -103,7 +105,8 @@ class Server:
                     name = f'last_point.ckpt'
 
                     repo = os.path.join(dir, cluster)
-                    os.mkdir(repo)
+                    if not os.path.exists(repo):
+                        os.makedirs(repo)
 
                     path = os.path.join(repo, name)
 
