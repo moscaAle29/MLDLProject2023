@@ -81,9 +81,12 @@ class Server:
 
                 for i in range(self.number_of_clusters):
                     cluster = f'cluster{i}'
+
                     name = f'round{round}.ckpt'
 
-                    path = os.path.join(dir, cluster, name)
+                    repo = os.path.join(dir, cluster)
+                    os.mkdir(repo)
+                    path = os.path.join(repo, name)
 
                     state = {
                     "round": round,
@@ -99,7 +102,10 @@ class Server:
                     cluster = f'cluster{i}'
                     name = f'last_point.ckpt'
 
-                    path = os.path.join(dir, cluster, name)
+                    repo = os.path.join(dir, cluster)
+                    os.mkdir(repo)
+
+                    path = os.path.join(repo, name)
 
                     state = {
                     "round": round,
