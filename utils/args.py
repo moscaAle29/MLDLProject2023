@@ -29,8 +29,8 @@ def get_parser():
     parser.add_argument('--test_interval', type=int, default=10, help='test interval')
 
     # ||| Transform Options |||
-    parser.add_argument('--min_scale', type=float, default=0.25, help='define the lowest value for scale')
-    parser.add_argument('--max_scale', type=float, default=2.0, help='define the highest value for scale')
+    parser.add_argument('--min_scale', type=float, default=0.08, help='define the lowest value for scale')
+    parser.add_argument('--max_scale', type=float, default=1.0, help='define the highest value for scale')
     parser.add_argument('--h_resize', type=int, default=512, help='define the resize value for image H ')
     parser.add_argument('--w_resize', type=int, default=1024, help='define the resize value for image W ')
 

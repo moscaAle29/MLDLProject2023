@@ -106,7 +106,8 @@ def get_transforms(args):
 
         if args.rrc_transform is True:
             size = (args.h_resize, args.w_resize)
-            augmentations.append(sstr.RandomResizedCrop(size = size))
+            scale = (args.min_scale, args.max_scale)
+            augmentations.append(sstr.RandomResizedCrop(size = size, scale=scale))
 
         if args.domain_adapt == 'fda':
             dir = create_style(args)
