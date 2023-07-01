@@ -189,4 +189,5 @@ class Client:
                                 "prediction": {"mask_data" : prediction.numpy(), "class_labels": class_labels},
                                 "ground_truth": {"mask_data": labels.numpy(), "class_labels": class_labels}
                             }
-                    self.logger.log_image(key=f'{self.name}-{i}', images = [img1], masks = [masks])
+                    if self.logger is not None:
+                        self.logger.log_image(key=f'{self.name}-{i}', images = [img1], masks = [masks])
