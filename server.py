@@ -26,7 +26,8 @@ class Server:
         self.checkpoint_round = 0
 
 
-        self.logger = set_up_logger(self.args)
+        #self.logger = set_up_logger(self.args)
+        self.logger = None
 
         self.number_of_clusters = None
 

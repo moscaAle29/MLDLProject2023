@@ -21,7 +21,7 @@ from datasets.gta5 import GTA5DataSet
 from models.deeplabv3 import deeplabv3_mobilenetv2
 #from ..PIDNet.models import pidnet
 from utils.stream_metrics import StreamSegMetrics, StreamClsMetrics
-from utils.utils import extract_amp_spectrum
+from utils.utils import extract_amp_spectrum, set_up_logger, get_checkpoint_path
 from utils.logger import Logger
 
 from PIL import Image
@@ -402,6 +402,7 @@ def create_style_based_clusters(args):
 
     return cluster_mapping
 
+#this method is not utilized anymore
 def create_vae_based_clusters1(args):
     root = './data/generated_imgs'
     if not os.path.isdir(root):
@@ -563,34 +564,58 @@ def create_vae_based_clusters1(args):
     print(cluster_mapping)
     return cluster_mapping
 
-def create_vae_based_clusters(args):
-    pretrained_dataset, train_datasets, test_datasets = get_dataset_vae()
+def create_vae_based_clusters(args, logger):
+    if args.train_vae is True:
+        
+        pretrained_dataset, train_datasets, test_datasets = get_dataset_vae()
 
-    net = VAE(input_height = 96).cuda()
+        net = VAE(input_height = 96).cuda()
 
-    #pretrain
-    print('pretrain on gta5')
-    data_loader = DataLoader(pretrained_dataset, batch_size=4, shuffle=True, drop_last=True)
-    trainer = pl.Trainer(gpus=1, max_epochs = 1)
-    trainer.fit(net, train_dataloaders=data_loader)
-
-    #fine_tuning
-    for train_dataset in train_datasets:
-        print(f'fine tune on client_{train_dataset.client_name}')
-        data_loader = DataLoader(train_dataset, batch_size=4, shuffle=True, drop_last=True)
+        #pretrain
+        print('pretrain on gta5')
+        data_loader = DataLoader(pretrained_dataset, batch_size=4, shuffle=True, drop_last=True)
         trainer = pl.Trainer(gpus=1, max_epochs = 1)
         trainer.fit(net, train_dataloaders=data_loader)
+
+        #fine_tuning
+        for train_dataset in train_datasets:
+            print(f'fine tune on client_{train_dataset.client_name}')
+            data_loader = DataLoader(train_dataset, batch_size=4, shuffle=True, drop_last=True)
+            trainer = pl.Trainer(gpus=1, max_epochs = 1)
+            trainer.fit(net, train_dataloaders=data_loader)
+
+        #save chkpt
+        dir = get_checkpoint_path(args)
+        name = 'vae.ckpt'
+        path = os.path.join(dir, name)
+
+        state = {
+            "model_state": net.state_dict()
+        }
+        torch.save(state, path)
+        logger.save(path)
+    else:
+        print("load pretrained vae")
+        dir = get_checkpoint_path(args)
+        name = 'vae.ckpt'
+        load_path = os.path.join(dir,name)
+        run_path = ''
+        root = '.'
+        Logger.restore(name=load_path, run_path=run_path, root=root)
+        checkpoint = torch.load(load_path)
+
+        net = VAE(input_height = 96)
+        net.load_state_dict(checkpoint["model_state"])
+ 
+    net.cuda()
     
-    #find representation for each client in laten space
+    #find representation for each client in laten 
     print('start clustering')
     X = []
     X_test = []
     client_ids = []
     test_client_ids = []
 
-    net.cuda()
-
-    
     for train_dataset in train_datasets:
         data_loader = DataLoader(train_dataset, batch_size=1)
         client_ids.append(train_dataset.client_name)
@@ -792,13 +817,14 @@ def main():
         args, train_datasets, evaluation_datasets, test_datasets, model)
     server = Server(args, single_client, train_clients,
                     test_clients, model, metrics)
+    server.logger = set_up_logger(args)
 
     if args.clustering is not None:
         # associate client to its cluster
         if args.clustering == 'ladd':
             cluster_mapping = create_style_based_clusters(args)
         elif args.clustering == 'vae':
-            cluster_mapping = create_vae_based_clusters(args)
+            cluster_mapping = create_vae_based_clusters(args, server.logger)
 
         client_dic = {}
         for client in train_clients:

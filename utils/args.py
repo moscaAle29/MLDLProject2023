@@ -57,6 +57,7 @@ def get_parser():
 
     # ||| Clustering ||| 
     parser.add_argument('--clustering', type=str, choices=['ladd', 'vae'], required=False, help='specify clustering scheme')
+    parser.add_argument('--train_vae', action= 'store_true', default=False, help = 'retrain vae or load pretrained model')
 
     # ||| Teachers |||
     parser.add_argument('--self_supervised', action = 'store_true', default= False, help = 'task 4')
