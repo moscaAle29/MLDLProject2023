@@ -5,10 +5,15 @@ import torch
 
 from torchvision.models import resnet18
 
+import datasets.ss_transforms as sstr
+
+import numpy as np
+from PIL import Image
 from torch import nn
 from client import Client
 from server import Server
 from utils.args import get_parser
+from utils.utils import extract_amp_spectrum
 from datasets.idda import IDDADataset
 from datasets.gta5 import GTA5DataSet
 from models.deeplabv3 import deeplabv3_mobilenetv2
@@ -57,6 +62,89 @@ def set_metrics(args):
         raise NotImplementedError
     return metrics
 
+def create_style(args):
+    if args.dataset2 == 'idda':
+        root = 'data/idda'
+        dir = os.path.join(root, 'bank_A')
+
+        if not os.path.isdir(dir):
+            os.makedirs(dir)
+
+        with open(os.path.join(root, 'train.json'), 'r') as f:
+            all_data = json.load(f)
+
+            for client_id in all_data.keys():
+                img_names = all_data[client_id]
+                fft_magnitudes = []
+
+                for filename in img_names:
+                    path_to_image = os.path.join(
+                        root, 'images', f'{filename}.jpg')
+                    img = Image.open(path_to_image)
+                    img_np = np.asanyarray(img, dtype=np.float32)
+
+                    fft_magnitudes.append(extract_amp_spectrum(img_np))
+
+                style = np.mean(np.array(fft_magnitudes), axis=0)
+
+                np.save(file=os.path.join(dir, client_id), arr=style)
+        
+        return dir
+
+def get_transforms(args):
+    if args.model == 'deeplabv3_mobilenetv2':
+
+        augmentations = []
+
+        if args.rrc_transform is True:
+            size = (args.h_resize, args.w_resize)
+            scale = (args.min_scale, args.max_scale)
+
+            augmentations.append(sstr.RandomResizedCrop(size = size, scale = scale))
+ 
+        if args.canny is True:
+            #canny edges transform
+            augmentations.append(sstr.Canny())
+
+        if args.flip is True:
+            #randon horizonal flip transform
+            augmentations.append(sstr.RandomHorizontalFlip())
+
+        if args.random_rotation is True:
+            #random rotation transform
+            augmentations.append(sstr.RandomRotation(30))
+        
+        if args.domain_adapt == 'fda':
+            dir = create_style(args)
+            augmentations.append(sstr.TargetStyle(dir))
+        
+        if args.jitter is True:
+            #color jitter transform
+            augmentations.append(sstr.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4))
+
+        augmentations.append(sstr.ToTensor())
+       
+        if args.canny is False:
+            augmentations.append(sstr.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]))
+
+        train_transforms = sstr.Compose(augmentations)
+
+        if args.canny is False:
+            test_transforms = sstr.Compose([
+                sstr.ToTensor(),
+                sstr.Normalize(mean=[0.485, 0.456, 0.406],
+                            std=[0.229, 0.224, 0.225])
+            ])
+        else:
+            test_transforms = sstr.Compose([
+                sstr.ToTensor()
+            ])
+    else:
+        raise NotImplementedError
+    return train_transforms, test_transforms
+
+
+
 def gen_clients(args, train_datasets, evaluation_datasets, test_datasets, model):
     clients = [[], []]
     single_client = None
@@ -87,6 +175,8 @@ def get_datasets(args):
     train_datasets = []
     evaluation_datasets = []
     test_datasets = []
+    
+    train_transforms, test_transforms = get_transforms(args)
 
     # determine the training dataset
     if args.dataset == 'idda':
@@ -110,10 +200,6 @@ def get_datasets(args):
             train_datasets.append(GTA5DataSet(root=root, list_samples=train_data, client_name='single client'))
     else:
         raise NotImplementedError
-    #shuffle dataset
-    # if train_datasets!= None:
-    #     random.shuffle(train_datasets)
-        
     # determine evaluation and testing datasets
     if args.dataset2 == 'idda':
         # the repositary where data and metadata is stored
@@ -132,11 +218,13 @@ def get_datasets(args):
         # test datasets
         with open(os.path.join(root, 'test_same_dom.txt'), 'r') as f:
             test_same_dom_data = f.read().splitlines()
-            test_same_dom_dataset = IDDADataset(root=root, list_samples=test_same_dom_data, client_name='test_same_dom')
+            test_same_dom_dataset = IDDADataset(root=root, list_samples=test_same_dom_data, transform=test_transforms,
+                                                client_name='test_same_dom')
 
         with open(os.path.join(root, 'test_diff_dom.txt'), 'r') as f:
             test_diff_dom_data = f.read().splitlines()
-            test_diff_dom_dataset = IDDADataset(root=root, list_samples=test_diff_dom_data,client_name='test_diff_dom')
+            test_diff_dom_dataset = IDDADataset(root=root, list_samples=test_diff_dom_data, transform=test_transforms,
+                                                client_name='test_diff_dom')
         test_datasets = [test_same_dom_dataset, test_diff_dom_dataset]
     else:
         raise NotImplementedError
@@ -153,6 +241,7 @@ def main():
     
     if args.task_2_test is True: 
         load_path = os.path.join('checkpoints', 'task2',f'{args.clients_per_round}clients_{args.num_epochs}epochs.ckpt')
+        print(f"loaded {args.clients_per_round}clients_{args.num_epochs}epochs.ckpt")
         checkpoint = torch.load(load_path)
         model.load_state_dict(checkpoint["model_state"])
     
