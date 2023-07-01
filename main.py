@@ -20,7 +20,7 @@ from datasets.gta5 import GTA5DataSet
 from models.deeplabv3 import deeplabv3_mobilenetv2
 #from ..PIDNet.models import pidnet
 from utils.stream_metrics import StreamSegMetrics, StreamClsMetrics
-from utils.utils import extract_amp_spectrum
+from utils.utils import extract_amp_spectrum, get_checkpoint_path
 from utils.logger import Logger
 
 from PIL import Image
@@ -293,9 +293,9 @@ def main():
     #load pre_trained model if specified
     if args.load_pretrained is True:
         print('Loading pretrained model...')
-        project = args.run_path.split('/')[1]
-        repo = project.split('_')
-        load_path = os.path.join('checkpoints',repo[0], repo[1], repo[2] ,f'round{args.round}.ckpt')
+        #project = args.run_path.split('/')[1]
+        #repo = project.split('_')
+        load_path = os.path.join(args.load_path ,f'round{args.round}.ckpt')
         run_path = args.run_path
         root = '.'
 
@@ -311,9 +311,10 @@ def main():
     #resume model if specified
     if args.resume is True:
         print('Loading pretrained model...')
-        project = args.run_path.split('/')[1]
-        repo = project.split('_')
-        load_path = os.path.join('checkpoints',repo[0], repo[1], repo[2] ,f'last_point.ckpt')
+        #project = args.run_path.split('/')[1]
+        #repo = project.split('_')
+        #load_path = os.path.join('checkpoints',repo[0], repo[1], repo[2] ,f'last_point.ckpt')
+        load_path = os.path.join(get_checkpoint_path(args), 'last_point.ckpt')
         run_path = args.run_path
         root = '.'
 
