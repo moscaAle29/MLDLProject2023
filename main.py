@@ -164,6 +164,7 @@ def create_style_test(args):
                     path_to_image = os.path.join(
                         root, 'images', f'{filename}.jpg')
                     img = Image.open(path_to_image)
+                    img = transforms(img)
                     img_np = np.asanyarray(img, dtype=np.float32)
 
                     fft_magnitudes.append(extract_amp_spectrum(img_np))
