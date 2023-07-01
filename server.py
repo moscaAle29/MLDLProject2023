@@ -26,10 +26,11 @@ class Server:
         
         self.output_file= open("results.txt", "a")
         
-        self.logger = set_up_logger(self.args)
+        if args.task_2_test is False:
+            self.logger = set_up_logger(self.args)
 
-        for test_client in test_clients:
-            test_client.logger = self.logger
+            for test_client in test_clients:
+                test_client.logger = self.logger
     
     def set_teacher(self, teacher):
         self.teacher = teacher
@@ -48,7 +49,8 @@ class Server:
         }
 
         torch.save(state, path)
-        self.logger.save(path)
+        if self.args.task_2_test is False:
+            self.logger.save(path)
         
     #save the model's checkpoint for a given epoch and number of clients
     def save_model_client_epochs(self):
@@ -64,8 +66,9 @@ class Server:
         }
 
         torch.save(state, path)
-        self.logger.save(path)
-        self.output_file.write(f"n_clients:{self.args.clients_per_round}, n_epochs:{self.args.num_epochs}")
+        if self.args.task_2_test is False:
+            self.logger.save(path)
+            self.output_file.write(f"n_clients:{self.args.clients_per_round}, n_epochs:{self.args.num_epochs}")
 
     def select_clients(self):
         if self.args.setting == 'federated':
@@ -177,7 +180,8 @@ class Server:
                 train_score = self.metrics['eval_train'].get_results()
                 
                 #log the evaluation
-                self.logger.log_metrics({'Train Mean IoU': train_score['Mean IoU']}, step=r + 1)
+                if self.args.task_2_test is False:
+                    self.logger.log_metrics({'Train Mean IoU': train_score['Mean IoU']}, step=r + 1)
                 
                 print("FINISH EVALUATION")
 
@@ -231,7 +235,8 @@ class Server:
                 #for testing purposes
                 if self.args.task_2_test is True:
                     print(f"same domain: {test_score['Mean IoU']}")
-                self.logger.log_metrics({'Test Same Dom Mean IoU': test_score['Mean IoU']}, step = step)
+                else:
+                    self.logger.log_metrics({'Test Same Dom Mean IoU': test_score['Mean IoU']}, step = step)
                 #save the scores on a list
                 if self.args.task_2_data_collection is True:
                     same_dom_scores.append(test_score['Mean IoU'])
@@ -244,7 +249,8 @@ class Server:
                 #for testing purposes
                 if self.args.task_2_test is True:
                     print(f"different domain: {test_score['Mean IoU']}")
-                self.logger.log_metrics({'Test Diff Dom Mean IoU': test_score['Mean IoU']}, step = step)
+                else:
+                    self.logger.log_metrics({'Test Diff Dom Mean IoU': test_score['Mean IoU']}, step = step)
                 #save the scores on a list
                 if self.args.task_2_data_collection is True:
                     diff_dom_scores.append(test_score['Mean IoU'])
