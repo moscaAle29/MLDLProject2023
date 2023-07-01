@@ -615,7 +615,7 @@ def create_vae_based_clusters(args, logger):
         dir = get_checkpoint_path(args)
         name = 'vae.ckpt'
         load_path = os.path.join(dir,name)
-        run_path = ''
+        run_path = 'flproject2023/VAE/v3sg51gn'
         root = '.'
         Logger.restore(name=load_path, run_path=run_path, root=root)
         checkpoint = torch.load(load_path)
