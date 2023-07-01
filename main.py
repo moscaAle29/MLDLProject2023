@@ -711,7 +711,7 @@ def get_dataset_vae():
     train_datasets = []
 
     #transform
-    resize = Resize(size = (96,96))
+    resize = sstr.RandomResizedCrop(size = (96,96), scale=(1,1))
     normalization = sstr.Normalize(mean=[0.485, 0.456, 0.406],
                            std=[0.229, 0.224, 0.225])
     
