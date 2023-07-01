@@ -17,7 +17,7 @@ Launching the main.py function will start the training, if your goal is just to 
 - Number of clients: [2 4 8]
 - Number of epochs: [1 3 6 9 12]
 ```bash
-python test.py --dataset idda --model deeplabv3_mobilenetv2 --num_rounds 100 --num_epochs *Number of epochs* --clients_per_round *Number of Clients*
+python test.py --task_2_test --dataset idda --model deeplabv3_mobilenetv2 --num_rounds 100 --num_epochs *Number of epochs* --clients_per_round *Number of Clients*
 ```
 
 

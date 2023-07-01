@@ -151,7 +151,7 @@ def main():
     print("initializing model...")
     model=model_init(args)
     
-    if args.task_2 is True: 
+    if args.task_2_test is True: 
         load_path = os.path.join('checkpoints', 'task2',f'{args.clients_per_round}clients_{args.num_epochs}epochs.ckpt')
         checkpoint = torch.load(load_path)
         model.load_state_dict(checkpoint["model_state"])
