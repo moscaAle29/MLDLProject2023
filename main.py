@@ -33,6 +33,7 @@ from sklearn.metrics import silhouette_score
 import torch.nn.functional as F
 
 from torch.utils.data import DataLoader
+from torchvision.transforms import Resize
 
 from pl_bolts.models.autoencoders import VAE
 import pytorch_lightning as pl
@@ -573,7 +574,7 @@ def create_vae_based_clusters(args, logger):
 
         #pretrain
         print('pretrain on gta5')
-        data_loader = DataLoader(pretrained_dataset, batch_size=4, shuffle=True, drop_last=True)
+        data_loader = DataLoader(pretrained_dataset, batch_size=16, shuffle=True, drop_last=True)
         trainer = pl.Trainer(gpus=1, max_epochs = 50)
         trainer.fit(net, train_dataloaders=data_loader)
 
@@ -581,7 +582,7 @@ def create_vae_based_clusters(args, logger):
         for train_dataset in train_datasets:
             print(f'fine tune on client_{train_dataset.client_name}')
             data_loader = DataLoader(train_dataset, batch_size=4, shuffle=True, drop_last=True)
-            trainer = pl.Trainer(gpus=1, max_epochs = 5)
+            trainer = pl.Trainer(gpus=1, max_epochs = 10)
             trainer.fit(net, train_dataloaders=data_loader)
 
         #save chkpt
@@ -710,7 +711,7 @@ def get_dataset_vae():
     train_datasets = []
 
     #transform
-    resize = sstr.Resize(size=(96,96))
+    resize = Resize(size = (96,96))
     normalization = sstr.Normalize(mean=[0.485, 0.456, 0.406],
                            std=[0.229, 0.224, 0.225])
     
