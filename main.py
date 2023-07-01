@@ -79,8 +79,9 @@ def model_init(args):
 def create_style(args):
     augmentations = []
     size = (args.h_resize, args.w_resize)
+    scale = (args.min_scale, args.max_scale)
 
-    augmentations.append(sstr.RandomResizedCrop(size = size))
+    augmentations.append(sstr.RandomResizedCrop(size = size, scale=scale))
     transforms = sstr.Compose(augmentations)
 
     if args.dataset2 == 'idda':
@@ -114,6 +115,13 @@ def create_style(args):
 
 
 def create_style_test(args):
+    augmentations = []
+    size = (args.h_resize, args.w_resize)
+    scale = (args.min_scale, args.max_scale)
+
+    augmentations.append(sstr.RandomResizedCrop(size = size, scale=scale))
+    transforms = sstr.Compose(augmentations)
+
     if args.dataset2 == 'idda':
         root = 'data/idda'
         dir = os.path.join(root, 'test')
@@ -134,6 +142,7 @@ def create_style_test(args):
                     path_to_image = os.path.join(
                         root, 'images', f'{filename}.jpg')
                     img = Image.open(path_to_image)
+                    img = transforms(img)
                     img_np = np.asanyarray(img, dtype=np.float32)
 
                     fft_magnitudes.append(extract_amp_spectrum(img_np))
@@ -703,7 +712,6 @@ def create_vae_based_clusters(args, logger):
     for i, cluster_id in enumerate(clusters_of_test_clients):
         cluster_mapping[cluster_id].append(test_client_ids[i])
 
-    print(cluster_mapping)
     return cluster_mapping
 
 def get_dataset_vae():
@@ -824,8 +832,12 @@ def main():
         # associate client to its cluster
         if args.clustering == 'ladd':
             cluster_mapping = create_style_based_clusters(args)
+            print(cluster_mapping)
+
         elif args.clustering == 'vae':
             cluster_mapping = create_vae_based_clusters(args, server.logger)
+            print(cluster_mapping)
+
 
         client_dic = {}
         for client in train_clients:
