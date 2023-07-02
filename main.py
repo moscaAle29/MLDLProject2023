@@ -580,7 +580,7 @@ def create_vae_based_clusters1(args):
     print(cluster_mapping)
     return cluster_mapping
 
-def create_vae_based_clusters(args, logger):
+def create_vae_based_clusters(args, load_path):
     if args.train_vae is True:
         
         pretrained_dataset, train_datasets, test_datasets = get_dataset_vae()
@@ -611,13 +611,6 @@ def create_vae_based_clusters(args, logger):
         torch.save(state, path)
         logger.save(path)
     else:
-        print("load pretrained vae")
-        dir = get_checkpoint_path(args)
-        name = 'vae.ckpt'
-        load_path = os.path.join(dir,name)
-        run_path = 'flproject2023/VAE/v3sg51gn'
-        root = '.'
-        Logger.restore(name=load_path, run_path=run_path, root=root)
         checkpoint = torch.load(load_path)
 
         net = VAE(input_height = 96)
@@ -813,6 +806,17 @@ def main():
                 teacher.load_state_dict(checkpoint["model_state"])
             if teacher_kd is not None:
                 teacher_kd.load_state_dict(checkpoint["model_state"])
+    
+    #load pretrained vae:
+    if args.clustering == 'vae':        
+        print("load pretrained vae")
+        dir = get_checkpoint_path(args)
+        name = 'vae.ckpt'
+        vae_load_path = os.path.join(dir,name)
+        run_path = 'flproject2023/VAE/v3sg51gn'
+        root = '.'
+        Logger.restore(name=vae_load_path, run_path=run_path, root=root)
+
 
 
     if teacher is not None:
@@ -841,7 +845,7 @@ def main():
             print(cluster_mapping)
 
         elif args.clustering == 'vae':
-            cluster_mapping = create_vae_based_clusters(args, server.logger)
+            cluster_mapping = create_vae_based_clusters(args, vae_load_path)
             print(cluster_mapping)
 
 
