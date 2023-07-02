@@ -777,7 +777,7 @@ def main():
         print('Loading pretrained model...')
         project = args.run_path.split('/')[1]
         repo = project.split('_')
-        load_path = os.path.join('checkpoints',repo[0], repo[1], repo[2] ,f'round{args.round}.ckpt')
+        load_path = os.path.join(args.load_path ,f'round{args.round}.ckpt')
         run_path = args.run_path
         root = '.'
 
@@ -795,7 +795,7 @@ def main():
         print('Loading pretrained model...')
         project = args.run_path.split('/')[1]
         repo = project.split('_')
-        load_path = os.path.join('checkpoints',repo[0], repo[1], repo[2] ,f'last_point.ckpt')
+        load_path = os.path.join(args.load_path ,f'last_point.ckpt')
         run_path = args.run_path
         root = '.'
 
