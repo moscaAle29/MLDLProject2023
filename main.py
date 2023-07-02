@@ -20,7 +20,7 @@ from datasets.gta5 import GTA5DataSet
 from models.deeplabv3 import deeplabv3_mobilenetv2
 #from ..PIDNet.models import pidnet
 from utils.stream_metrics import StreamSegMetrics, StreamClsMetrics
-from utils.utils import extract_amp_spectrum
+from utils.utils import extract_amp_spectrum, get_checkpoint_path
 from utils.logger import Logger
 
 from PIL import Image
@@ -62,6 +62,12 @@ def model_init(args):
 
 
 def create_style(args):
+    augmentations = []
+    size = (args.h_resize, args.w_resize)
+
+    augmentations.append(sstr.RandomResizedCrop(size = size))
+    transforms = sstr.Compose(augmentations)
+
     if args.dataset2 == 'idda':
         root = 'data/idda'
         dir = os.path.join(root, 'bank_A')
@@ -80,6 +86,7 @@ def create_style(args):
                     path_to_image = os.path.join(
                         root, 'images', f'{filename}.jpg')
                     img = Image.open(path_to_image)
+                    img = transforms(img)
                     img_np = np.asanyarray(img, dtype=np.float32)
 
                     fft_magnitudes.append(extract_amp_spectrum(img_np))
@@ -99,8 +106,11 @@ def get_transforms(args):
         if args.rrc_transform is True:
             size = (args.h_resize, args.w_resize)
             scale = (args.min_scale, args.max_scale)
+            augmentations.append(sstr.RandomResizedCrop(size = size, scale=scale))
 
-            augmentations.append(sstr.RandomResizedCrop(size = size, scale = scale))
+        if args.domain_adapt == 'fda':
+            dir = create_style(args)
+            augmentations.append(sstr.TargetStyle(dir, args.fda_alpha))
  
         if args.canny is True:
             #canny edges transform
@@ -113,11 +123,7 @@ def get_transforms(args):
         if args.random_rotation is True:
             #random rotation transform
             augmentations.append(sstr.RandomRotation(30))
-        
-        if args.domain_adapt == 'fda':
-            dir = create_style(args)
-            augmentations.append(sstr.TargetStyle(dir))
-        
+                
         if args.jitter is True:
             #color jitter transform
             augmentations.append(sstr.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4))
@@ -276,13 +282,22 @@ def main():
 
     print(f'Initializing model...')
     model = model_init(args)
-    
-    #self_supervised = use pseudo-labels
+
+    #initialize teacher if setting is semi_supervised
+    teacher = None
     if args.self_supervised is True:
-        print('Loading pretrained model...')
         teacher = model_init(args)
-        #load saved checkpoint
-        load_path = os.path.join('checkpoints', 'centralized', 'gta5', 'idda', f'round{args.round}.ckpt')
+    #initialize teacher_kd if knowledge distillation is applied
+    teacher_kd = None
+    if args.kd is True:
+        teacher_kd = model_init(args)
+    
+    #load pre_trained model if specified
+    if args.load_pretrained is True:
+        print('Loading pretrained model...')
+        #project = args.run_path.split('/')[1]
+        #repo = project.split('_')
+        load_path = os.path.join(args.load_path ,f'round{args.round}.ckpt')
         run_path = args.run_path
         root = '.'
 
@@ -291,10 +306,34 @@ def main():
             #load the data into the model
             checkpoint = torch.load(load_path)
             model.load_state_dict(checkpoint["model_state"])
-            teacher.load_state_dict(checkpoint["model_state"])
+            if teacher is not None:
+                teacher.load_state_dict(checkpoint["model_state"])
+            if teacher_kd is not None:
+                teacher_kd.load_state_dict(checkpoint["model_state"])
+    #resume model if specified
+    if args.resume is True:
+        print('Loading pretrained model...')
+        #project = args.run_path.split('/')[1]
+        #repo = project.split('_')
+        #load_path = os.path.join('checkpoints',repo[0], repo[1], repo[2] ,f'last_point.ckpt')
+        load_path = os.path.join(get_checkpoint_path(args), 'last_point.ckpt')
+        run_path = args.run_path
+        root = '.'
 
-        teacher.cuda()
-        
+        Logger.restore(name = load_path, run_path = run_path, root = root)
+        if args.model == 'deeplabv3_mobilenetv2':
+            checkpoint = torch.load(load_path)
+            model.load_state_dict(checkpoint["model_state"])
+            if teacher is not None:
+                teacher.load_state_dict(checkpoint["model_state"])
+            if teacher_kd is not None:
+                teacher_kd.load_state_dict(checkpoint["model_state"])
+
+
+    if teacher is not None:
+        teacher.cuda()  
+    if teacher_kd is not None:
+        teacher_kd.cuda()
     model.cuda()
     print('Done.')
 
@@ -309,8 +348,15 @@ def main():
     server = Server(args, single_client, train_clients,
                     test_clients, model, metrics)
     
+    if args.resume is True:
+        server.checkpoint_round = checkpoint['round']
+
+    
     if args.self_supervised is True:
         server.set_teacher(teacher)
+    
+    if args.kd is True:
+        server.set_teacher_kd(teacher_kd)
 
     server.train()
     server.test(final_test=True)

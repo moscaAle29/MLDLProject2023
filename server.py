@@ -28,25 +28,51 @@ class Server:
         
         if args.task_2_test is False:
             self.logger = set_up_logger(self.args)
-
-            for test_client in test_clients:
+             for test_client in test_clients:
                 test_client.logger = self.logger
+                
+        self.teacher_kd_params_dict = None
+        self.teacher_kd = None
+
+        self.checkpoint_round = 0
     
     def set_teacher(self, teacher):
         self.teacher = teacher
         self.teacher_params_dict = copy.deepcopy(self.teacher.state_dict())
 
-    #save the models checkpoints
-    def save_model(self, round):
-        dir = get_checkpoint_path(self.args)
-        name = f'round{round}.ckpt'
+    def set_teacher_kd(self, teacher_kd):
+        self.teacher_kd = teacher_kd
+        self.teacher_kd_params_dict = copy.deepcopy(self.teacher_kd.state_dict())
 
-        path = os.path.join(dir, name)
+    
+    def save_model(self, round, save_eval = True):
+        if save_eval:
+            dir = get_checkpoint_path(self.args)
+            name = f'round{round}.ckpt'
 
-        state = {
-            "round": round,
-            "model_state": self.model_params_dict
-        }
+            path = os.path.join(dir, name)
+
+            state = {
+                "round": round,
+                "model_state": self.model_params_dict
+            }
+
+            torch.save(state, path)
+            self.logger.save(path)
+        else:
+            dir = get_checkpoint_path(self.args)
+            name = f'last_point.ckpt'
+
+            path = os.path.join(dir, name)
+
+            state = {
+                "round": round,
+                "model_state": self.model_params_dict
+            }
+
+            torch.save(state, path)
+            self.logger.save(path)
+
 
         torch.save(state, path)
         if self.args.task_2_test is False:
@@ -161,7 +187,7 @@ class Server:
         """
         print("-------------------------START TRAINING-------------------------")
 
-        for r in range(self.args.num_rounds):
+        for r in range(self.checkpoint_round,self.args.num_rounds):
             print(f'ROUND-{r+1}')
             selected_clients = self.select_clients()
 
@@ -180,9 +206,21 @@ class Server:
                 train_score = self.metrics['eval_train'].get_results()
                 
                 #log the evaluation
+
                 if self.args.task_2_test is False:
                     self.logger.log_metrics({'Train Mean IoU': train_score['Mean IoU']}, step=r + 1)
-                
+
+                self.metrics['eval_train'].reset()
+
+                #eval on single client
+                if self.single_client is not None:
+                    self.single_client.eval_train(self.metrics['eval_train'])
+                    train_score = self.metrics['eval_train'].get_results()
+                    self.logger.log_metrics({f'Train Mean IoU{self.args.dataset}': train_score['Mean IoU']}, step=r + 1)
+
+
+                #erase the old results before evaluating the updated model
+                self.metrics['eval_train'].reset()
                 print("FINISH EVALUATION")
 
                 print("-------------------------EVALUATION ON TEST DATASET-------------------------")
@@ -194,6 +232,7 @@ class Server:
                 print("FINISH EVALUATION")
 
                 self.save_model(round = r+1)
+            self.save_model(round = r+1, save_eval=False)
             
             #if self_supervised is True, update teacher after some intervals or never update
             if self.args.self_supervised is True:

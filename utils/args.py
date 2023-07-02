@@ -9,6 +9,8 @@ def get_parser():
     parser.add_argument('--dataset', type=str, choices=['idda', 'femnist', 'gta5'], required=True, help='dataset name')
     parser.add_argument('--dataset2', type=str, choices=['idda', 'femnist', 'gta5'], required=True, help='dataset name')
     parser.add_argument('--domain_adapt', type=str, choices=['fda'], required=False, help='domain adaptation method')
+    parser.add_argument('--resume', action='store_true', default=False, help='resume paused or crashed run')
+    parser.add_argument('--task', type=str, required= False, help='specify task')
 
     parser.add_argument('--niid', action='store_true', default=False,help='Run the experiment with the non-IID partition (IID by default). Only on FEMNIST dataset.')
     parser.add_argument('--model', type=str, choices=['deeplabv3_mobilenetv2', 'resnet18', 'cnn'], help='model name')
@@ -43,18 +45,25 @@ def get_parser():
     parser.add_argument('--rsrc_transform', action='store_true', default=False,help='whether to use random scale random crop')
     parser.add_argument('--cts_norm', action='store_true', default=False,help='whether to use cts normalization otherwise 0.5 for mean and std')
     parser.add_argument('--random_rotation', action='store_true', default=False, help='do random rotation on img')
+    parser.add_argument('--fda_alpha', type=float, default=0.05, help='window size fda')
 
     
     # ||| Checkpoint Options ||| 
+    parser.add_argument('--load_pretrained', action = 'store_true', default=False , help='load pre_trained w specified by run path and round')
     parser.add_argument('--self_supervised', action = 'store_true', default= False, help = 'task 4')
     parser.add_argument('--run_path', required=False, help='where to find checkpoints in wandb')
+    parser.add_argument('--load_path', required=False, help='where to load chkpt')
+
     parser.add_argument('--round', type = int, default= 100, help = 'round at which model state is stored')
     parser.add_argument('--update_interval', type=int, default=0, help='update teacher after n rounds, n= 0 means never')
     parser.add_argument('--task_2_data_collection',action='store_true', default=False,help="Run task 2 with specified number of clients and epochs" )
+    parser.add_argument('--kd', action = 'store_true', default=False , help='apply knowledge distillation')
+    parser.add_argument('--lambda_kd', type=float, default=10.0, help='knowledge distillation rate')
 
     #||| test.py Arguments |||
     parser.add_argument('--task_2_test', action='store_true', default=False,help="Test task 2 loading the checkpoint with specified number of clients, epochs and rounds" )
     # parser.add_argument('--num_rounds', type=int, help='number of rounds')
     # parser.add_argument('--num_epochs', type=int, help='number of local epochs')
     # parser.add_argument('--clients_per_round', type=int, help='number of clients trained per round')
+    
     return parser
