@@ -132,7 +132,7 @@ def create_style_test(args):
         with open(os.path.join(root, 'test_same_dom.txt'), 'r') as f:
             test_same_dom_data = f.read().splitlines()
 
-            all_data = {'test_same_dome': test_same_dom_data}
+            all_data = {'test_same_dom': test_same_dom_data}
 
             for client_id in all_data.keys():
                 img_names = all_data[client_id]
@@ -154,7 +154,7 @@ def create_style_test(args):
         with open(os.path.join(root, 'test_diff_dom.txt'), 'r') as f:
             test_diff_dom_data = f.read().splitlines()
 
-            all_data = {'test_diff_dome': test_diff_dom_data}
+            all_data = {'test_diff_dom': test_diff_dom_data}
 
             for client_id in all_data.keys():
                 img_names = all_data[client_id]
