@@ -580,7 +580,7 @@ def create_vae_based_clusters1(args):
     print(cluster_mapping)
     return cluster_mapping
 
-def create_vae_based_clusters(args, load_path):
+def create_vae_based_clusters(args, load_path, logger):
     pretrained_dataset, train_datasets, test_datasets = get_dataset_vae()
 
     if args.train_vae is True:
@@ -846,7 +846,7 @@ def main():
             print(cluster_mapping)
 
         elif args.clustering == 'vae':
-            cluster_mapping = create_vae_based_clusters(args, vae_load_path)
+            cluster_mapping = create_vae_based_clusters(args, vae_load_path, server.logger)
             print(cluster_mapping)
 
 
