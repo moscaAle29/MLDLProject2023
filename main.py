@@ -795,7 +795,7 @@ def main():
         print('Loading pretrained model...')
         project = args.run_path.split('/')[1]
         repo = project.split('_')
-        load_path = os.path.join(args.load_path ,f'last_point.ckpt')
+        load_path = os.path.join(get_checkpoint_path(args) ,f'last_point.ckpt')
         run_path = args.run_path
         root = '.'
 
