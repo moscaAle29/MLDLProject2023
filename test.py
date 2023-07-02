@@ -245,6 +245,12 @@ def main():
         checkpoint = torch.load(load_path)
         model.load_state_dict(checkpoint["model_state"])
     
+    if args.task_3_2_test is True: 
+        pass
+    if args.task_3_4_test is True: 
+        pass
+    if args.task_4_test is True: 
+        pass
     model.cuda()
     print("Done!")
     
