@@ -370,11 +370,11 @@ def create_style_based_clusters(args):
     X_test = []
 
     for client_id in client_ids:
-        row = np.load(os.path.join(dir, client_id)).flatten()
+        row = np.load(os.path.join(dir, client_id+'.npy')).flatten()
         X.append(row)
 
     for client_id in test_client_ids:
-        row = np.load(os.path.join(test_dir, client_id)).flatten()
+        row = np.load(os.path.join(test_dir, client_id+'.npy')).flatten()
         X_test.append(row)
 
     X = np.array(X)
