@@ -361,10 +361,10 @@ def create_style_based_clusters(args):
     client_ids = os.listdir(dir)
     test_client_ids = os.listdir(test_dir)
 
-    for id in client_ids:
-        id = id.split('.')[0]
-    for id in test_client_ids:
-        id = id.split('.')[0]
+    for idx,id in enumerate(client_ids):
+        client_ids[idx] = id.split('.')[0]
+    for idx, id in enumerate(test_client_ids):
+        test_client_ids[idx] = id.split('.')[0]
 
     X = []
     X_test = []
