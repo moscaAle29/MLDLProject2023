@@ -581,9 +581,10 @@ def create_vae_based_clusters1(args):
     return cluster_mapping
 
 def create_vae_based_clusters(args, load_path):
+    pretrained_dataset, train_datasets, test_datasets = get_dataset_vae()
+
     if args.train_vae is True:
         
-        pretrained_dataset, train_datasets, test_datasets = get_dataset_vae()
 
         net = VAE(input_height = 96).cuda()
 
