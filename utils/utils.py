@@ -85,11 +85,37 @@ class SelfTrainingLoss(nn.Module):
         #return loss.mean() * self.lambda_selftrain
         return pseudo_lab
         
+class KnowledgeDistillationLoss(nn.Module):
 
+    def __init__(self, reduction='mean', alpha=1.):
+        super().__init__()
+        self.reduction = reduction
+        self.alpha = alpha
+
+    def forward(self, inputs, targets, pred_labels=None, mask=None):
+        inputs = inputs.narrow(1, 0, targets.shape[1])
+        outputs = torch.log_softmax(inputs, dim=1)
+        labels = torch.softmax(targets * self.alpha, dim=1)
+        loss = (outputs * labels).mean(dim=1)
+
+        if pred_labels is not None:
+            loss = loss * pred_labels.float()
+        if mask is not None:
+            loss = loss * mask
+        if self.reduction == 'mean':
+            outputs = -torch.mean(loss)
+        elif self.reduction == 'sum':
+            outputs = -torch.sum(loss)
+        else:
+            outputs = -loss
+        return outputs
 
 def set_up_logger(args):
 
-    logger = Logger(name = get_job_name(args), project = get_project_name(args))
+    if args.resume:
+        logger = Logger(name = get_job_name(args), project = get_project_name(args), wid = args.run_path.split('/')[2])
+    else:
+        logger = Logger(name = get_job_name(args), project = get_project_name(args))
 
     return logger
 
