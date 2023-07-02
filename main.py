@@ -586,7 +586,7 @@ def create_vae_based_clusters(args, load_path, logger):
     if args.train_vae is True:
         
 
-        net = VAE(input_height = 96).cuda()
+        net = VAE(input_height = 288).cuda()
 
         #pretrain
         print('pretrain on gta5')
@@ -614,7 +614,7 @@ def create_vae_based_clusters(args, load_path, logger):
     else:
         checkpoint = torch.load(load_path)
 
-        net = VAE(input_height = 96)
+        net = VAE(input_height = 288)
         net.load_state_dict(checkpoint["model_state"])
  
     net.cuda()
@@ -719,7 +719,7 @@ def get_dataset_vae():
     train_datasets = []
 
     #transform
-    resize = sstr.RandomResizedCrop(size = (96,96), scale=(1,1))
+    resize = sstr.RandomResizedCrop(size = (288,288), scale=(1,1))
     normalization = sstr.Normalize(mean=[0.485, 0.456, 0.406],
                            std=[0.229, 0.224, 0.225])
     
@@ -814,7 +814,7 @@ def main():
         dir = get_checkpoint_path(args)
         name = 'vae.ckpt'
         vae_load_path = os.path.join(dir,name)
-        run_path = 'flproject2023/VAE/v3sg51gn'
+        run_path = 'flproject2023/VAE/hv2n08x2'
         root = '.'
         Logger.restore(name=vae_load_path, run_path=run_path, root=root)
 
@@ -838,6 +838,9 @@ def main():
     server = Server(args, single_client, train_clients,
                     test_clients, model, metrics)
     server.logger = set_up_logger(args)
+    for test_client in test_clients:
+        test_client.logger = server.logger
+
 
     if args.clustering is not None:
         # associate client to its cluster

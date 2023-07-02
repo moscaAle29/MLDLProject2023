@@ -31,8 +31,8 @@ class Server:
 
         self.number_of_clusters = None
 
-        for test_client in test_clients:
-            test_client.logger = self.logger
+        #for test_client in test_clients:
+        #    test_client.logger = self.logger
 
     def set_teacher(self, teacher):
         self.teacher = teacher
