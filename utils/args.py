@@ -53,6 +53,7 @@ def get_parser():
     parser.add_argument('--load_pretrained', action = 'store_true', default=False , help='load pre_trained w specified by run path and round')
     parser.add_argument('--run_path', required=False, help='where to find checkpoints in wandb')
     parser.add_argument('--round', type = int, default= 100, help = 'round at which model state is stored')
+    parser.add_argument('--load_path', required=False, help='where to load checkpoint')
 
 
     # ||| Clustering ||| 
