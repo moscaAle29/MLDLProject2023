@@ -28,7 +28,7 @@ class Server:
         
         if args.task_2_test is False:
             self.logger = set_up_logger(self.args)
-             for test_client in test_clients:
+            for test_client in test_clients:
                 test_client.logger = self.logger
                 
         self.teacher_kd_params_dict = None
