@@ -10,7 +10,7 @@ def get_parser():
     parser.add_argument('--dataset2', type=str, choices=['idda', 'femnist', 'gta5'], required=True, help='dataset name')
     parser.add_argument('--domain_adapt', type=str, choices=['fda'], required=False, help='domain adaptation method')
     parser.add_argument('--resume', action='store_true', default=False, help='resume paused or crashed run')
-    parser.add_argument('--task', type=str, required= False, help='specify task')
+    parser.add_argument('--task', type=float, required= False, help='specify task')
 
     parser.add_argument('--niid', action='store_true', default=False,help='Run the experiment with the non-IID partition (IID by default). Only on FEMNIST dataset.')
     parser.add_argument('--model', type=str, choices=['deeplabv3_mobilenetv2', 'resnet18', 'cnn'], help='model name')
@@ -61,6 +61,6 @@ def get_parser():
     parser.add_argument('--lambda_kd', type=float, default=10.0, help='knowledge distillation rate')
 
     #||| test.py Arguments |||
-    parser.add_argument('--test', action='store_true', default=False,help="Test task 2 loading the checkpoint with specified number of clients, epochs and rounds" )
+    parser.add_argument('--test', action='store_true', default=False,required= False, help="Test task 2 loading the checkpoint with specified number of clients, epochs and rounds" )
     
     return parser

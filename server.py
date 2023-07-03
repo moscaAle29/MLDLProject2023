@@ -216,7 +216,8 @@ class Server:
                 if self.single_client is not None:
                     self.single_client.eval_train(self.metrics['eval_train'])
                     train_score = self.metrics['eval_train'].get_results()
-                    self.logger.log_metrics({f'Train Mean IoU{self.args.dataset}': train_score['Mean IoU']}, step=r + 1)
+                    if self.args.test is False:
+                        self.logger.log_metrics({f'Train Mean IoU{self.args.dataset}': train_score['Mean IoU']}, step=r + 1)
 
 
                 #erase the old results before evaluating the updated model
@@ -231,9 +232,10 @@ class Server:
 
                 print("FINISH EVALUATION")
 
-                self.save_model(round = r+1)
-            
-            self.save_model(round = r+1, save_eval=False)
+                if self.args.test is False:
+                    self.save_model(round = r+1)
+            if self.args.test is False:
+                self.save_model(round = r+1, save_eval=False)
             
             #if self_supervised is True, update teacher after some intervals or never update
             if self.args.self_supervised is True:

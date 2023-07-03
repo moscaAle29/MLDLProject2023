@@ -238,7 +238,8 @@ def get_datasets(args):
 
 def get_string(value):
     value=str(value)
-    return value
+    value=value.split(".")[1]
+    return f"0{value}"
 
 def main():
     parser=get_parser()
