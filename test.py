@@ -252,57 +252,60 @@ def main():
     if args.kd is True:
         teacher_kd = model_init(args)
     
-    if args.test is True: 
-        if args.task==1:
-            load_path = os.path.join('checkpoints', 'task1',f'task1.ckpt')
-            checkpoint = torch.load(load_path)
-            model.load_state_dict(checkpoint["model_state"])
-        
-        elif args.task==2:
-            if args.clients_per_round not in [2,4,8] or args.num_epochs not in [1,3,6,9,12]:
-                print("you specified the wrong number of clients or epochs")
-                return
-            load_path = os.path.join('checkpoints', 'task2',f'{args.clients_per_round}clients_{args.num_epochs}epochs.ckpt')
-            checkpoint = torch.load(load_path)
-            model.load_state_dict(checkpoint["model_state"])
-        
-        elif args.task==3.2:
-            if args.bs not in [2,4,6,8,10] or args.lr not in [0.01, 0.03, 0.05]:
-                print("you specified the wrong batch size or learning rate")
-                return
-            #check with the guys
-            load_path = os.path.join('checkpoints', 'task3.2',f'bs{args.bs}_lr{args.lr}')
-            checkpoint = torch.load(load_path)
-            model.load_state_dict(checkpoint["model_state"])
-        
-        elif args.task==3.4:
-            if args.fda_alpha not in [0.1,0.01,0.05,0.005] :
-                print("you specified the wrong value for alpha")
-                return
-            load_path = os.path.join('checkpoints', 'task3.4',f'bs4_fda{get_string(args.fda_alpha)}.ckpt')
-            checkpoint = torch.load(load_path)
-            model.load_state_dict(checkpoint["model_state"])
-        
-        elif args.task==4.2:
-            if args.clients_per_round not in [2,8] or args.update_interval not in [0,1]:
-                print("you specified the wrong number of clients or update interval")
-                return
-            teacher = model_init(args)
-            load_path = os.path.join('checkpoints', 'task4.2',f'cl{args.clients_per_round}_ui{args.update_interval}.ckpt')
-            checkpoint = torch.load(load_path)
-            model.load_state_dict(checkpoint["model_state"])
-            teacher.load_state_dict(checkpoint["model_state"])
-        
-        elif args.task==4.3:
-            if args.clients_per_round not in [2,8] or args.update_interval not in [0,1]:
-                print("you specified the wrong number of clients or update interval")
-                return
-            teacher = model_init(args)
-            load_path = os.path.join('checkpoints', 'task4.3',f'cl{args.clients_per_round}_ui{args.update_interval}.ckpt')
-            checkpoint = torch.load(load_path)
-            model.load_state_dict(checkpoint["model_state"])
-            teacher.load_state_dict(checkpoint["model_state"])
-            
+    if args.task==1:
+        load_path = os.path.join('checkpoints', 'task1',f'task1.ckpt')
+        checkpoint = torch.load(load_path)
+        model.load_state_dict(checkpoint["model_state"])
+    
+    elif args.task==2:
+        if args.clients_per_round not in [2,4,8] or args.num_epochs not in [1,3,6,9,12]:
+            print("you specified the wrong number of clients or epochs")
+            return
+        load_path = os.path.join('checkpoints', 'task2',f'{args.clients_per_round}clients_{args.num_epochs}epochs.ckpt')
+        checkpoint = torch.load(load_path)
+        model.load_state_dict(checkpoint["model_state"])
+    
+    elif args.task==3.2:
+        if args.bs not in [2,4,6,8,10] or args.lr not in [0.01, 0.03, 0.05]:
+            print("you specified the wrong batch size or learning rate")
+            return
+        #check with the guys
+        load_path = os.path.join('checkpoints', 'task3.2',f'bs{args.bs}_lr{args.lr}')
+        checkpoint = torch.load(load_path)
+        model.load_state_dict(checkpoint["model_state"])
+    
+    elif args.task==3.4:
+        if args.fda_alpha not in [0.1,0.01,0.05,0.005] :
+            print("you specified the wrong value for alpha")
+            return
+        load_path = os.path.join('checkpoints', 'task3.4',f'bs4_fda{get_string(args.fda_alpha)}.ckpt')
+        checkpoint = torch.load(load_path)
+        model.load_state_dict(checkpoint["model_state"])
+    
+    elif args.task==4.2:
+        if args.clients_per_round not in [2,8] or args.update_interval not in [0,1]:
+            print("you specified the wrong number of clients or update interval")
+            return
+        teacher = model_init(args)
+        load_path = os.path.join('checkpoints', 'task4.2',f'cl{args.clients_per_round}_ui{args.update_interval}.ckpt')
+        checkpoint = torch.load(load_path)
+        model.load_state_dict(checkpoint["model_state"])
+        teacher.load_state_dict(checkpoint["model_state"])
+    
+    elif args.task==4.3:
+        if args.clients_per_round not in [2,8] or args.update_interval not in [0,1]:
+            print("you specified the wrong number of clients or update interval")
+            return
+        teacher = model_init(args)
+        load_path = os.path.join('checkpoints', 'task4.3',f'cl{args.clients_per_round}_ui{args.update_interval}.ckpt')
+        checkpoint = torch.load(load_path)
+        model.load_state_dict(checkpoint["model_state"])
+        teacher.load_state_dict(checkpoint["model_state"])
+    
+    else:
+        print("not implemented")
+        return
+     
     if teacher is not None:
         teacher.cuda()  
     
