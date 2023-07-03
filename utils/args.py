@@ -61,9 +61,6 @@ def get_parser():
     parser.add_argument('--lambda_kd', type=float, default=10.0, help='knowledge distillation rate')
 
     #||| test.py Arguments |||
-    parser.add_argument('--task_2_test', action='store_true', default=False,help="Test task 2 loading the checkpoint with specified number of clients, epochs and rounds" )
-    # parser.add_argument('--num_rounds', type=int, help='number of rounds')
-    # parser.add_argument('--num_epochs', type=int, help='number of local epochs')
-    # parser.add_argument('--clients_per_round', type=int, help='number of clients trained per round')
+    parser.add_argument('--test', action='store_true', default=False,help="Test task 2 loading the checkpoint with specified number of clients, epochs and rounds" )
     
     return parser

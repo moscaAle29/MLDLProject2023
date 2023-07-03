@@ -26,7 +26,7 @@ class Server:
         
         self.output_file= open("results.txt", "a")
         
-        if args.task_2_test is False:
+        if args.test is False:
             self.logger = set_up_logger(self.args)
             for test_client in test_clients:
                 test_client.logger = self.logger
@@ -75,7 +75,7 @@ class Server:
 
 
         torch.save(state, path)
-        if self.args.task_2_test is False:
+        if self.args.test is False:
             self.logger.save(path)
         
     #save the model's checkpoint for a given epoch and number of clients
@@ -92,7 +92,7 @@ class Server:
         }
 
         torch.save(state, path)
-        if self.args.task_2_test is False:
+        if self.args.test is False:
             self.logger.save(path)
             self.output_file.write(f"n_clients:{self.args.clients_per_round}, n_epochs:{self.args.num_epochs}")
 
@@ -207,7 +207,7 @@ class Server:
                 
                 #log the evaluation
 
-                if self.args.task_2_test is False:
+                if self.args.test is False:
                     self.logger.log_metrics({'Train Mean IoU': train_score['Mean IoU']}, step=r + 1)
 
                 self.metrics['eval_train'].reset()
@@ -232,6 +232,7 @@ class Server:
                 print("FINISH EVALUATION")
 
                 self.save_model(round = r+1)
+            
             self.save_model(round = r+1, save_eval=False)
             
             #if self_supervised is True, update teacher after some intervals or never update
@@ -272,7 +273,7 @@ class Server:
 
                 test_score = self.metrics['test_same_dom'].get_results()
                 #for testing purposes
-                if self.args.task_2_test is True:
+                if self.args.test is True:
                     print(f"same domain: {test_score['Mean IoU']}")
                 else:
                     self.logger.log_metrics({'Test Same Dom Mean IoU': test_score['Mean IoU']}, step = step)
@@ -286,7 +287,7 @@ class Server:
 
                 test_score = self.metrics['test_diff_dom'].get_results()
                 #for testing purposes
-                if self.args.task_2_test is True:
+                if self.args.test is True:
                     print(f"different domain: {test_score['Mean IoU']}")
                 else:
                     self.logger.log_metrics({'Test Diff Dom Mean IoU': test_score['Mean IoU']}, step = step)
