@@ -189,8 +189,13 @@ def get_datasets(args):
                 all_data = json.load(f)
                 for client_id in all_data.keys():
                     train_datasets.append(IDDADataset(root=root, list_samples=all_data[client_id], client_name=client_id))
+        elif args.setting == 'centralized':
+            with open(os.path.join(root, 'train.txt'), 'r') as f:
+                train_data = f.read().splitlines()
+                train_datasets.append(IDDADataset(root=root, list_samples=train_data, client_name='single client'))
         else:
             raise NotImplementedError
+
 
     elif args.dataset == 'gta5':
         # the repositary where data and metadata is stored
@@ -242,6 +247,7 @@ def main():
     print("initializing model...")
     model=model_init(args)
     
+    teacher=None
     teacher_kd = None
     if args.kd is True:
         teacher_kd = model_init(args)
