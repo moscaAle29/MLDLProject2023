@@ -143,8 +143,6 @@ def get_transforms(args):
         raise NotImplementedError
     return train_transforms, test_transforms
 
-
-
 def gen_clients(args, train_datasets, evaluation_datasets, test_datasets, model):
     clients = [[], []]
     single_client = None
@@ -297,6 +295,15 @@ def main():
             return
         teacher = model_init(args)
         load_path = os.path.join('checkpoints', 'task4.3',f'cl{args.clients_per_round}_ui{args.update_interval}.ckpt')
+        checkpoint = torch.load(load_path)
+        model.load_state_dict(checkpoint["model_state"])
+        teacher.load_state_dict(checkpoint["model_state"])
+    elif args.task==5:
+        if args.clients_per_round not in [2,8] or args.update_interval not in [0,1]:
+            print("you specified the wrong number of clients or update interval")
+            return
+        teacher = model_init(args)
+        load_path = os.path.join('checkpoints', 'task5',f'cl{args.clients_per_round}_ui{args.update_interval}.ckpt')
         checkpoint = torch.load(load_path)
         model.load_state_dict(checkpoint["model_state"])
         teacher.load_state_dict(checkpoint["model_state"])
