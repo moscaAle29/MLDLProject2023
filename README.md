@@ -14,7 +14,10 @@ Example of FedAvg experiment
 python main.py --dataset idda --model deeplabv3_mobilenetv2 --num_rounds 200 --num_epochs 2 --clients_per_round 8 
 ```
 ## How to test
-In order to test the algorithm
+In order to test the algorithm you need to checkout the test branch using 
+```bash
+git clone -b test https://github.com/moscaAle29/MLDLProject2023.git 
+```
 Launching the main.py function will start the training, if your goal is just to evaluate the result please select a number of clients and epochs and run the test.py file specifying the configuration you want to evaluate using the ```args``` parameter.
 #### task 1
 In the first task we are asked to run experiments in order to find the better configuration, we included the checkpoint for the best configuration, to test run 
