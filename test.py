@@ -269,7 +269,7 @@ def main():
             print("you specified the wrong batch size or learning rate")
             return
         #check with the guys
-        load_path = os.path.join('checkpoints', 'task3.2',f'bs{args.bs}_lr{args.lr}')
+        load_path = os.path.join('checkpoints', 'task3.2',f'bs{args.bs}_lr{get_string(args.lr)}.ckpt')
         checkpoint = torch.load(load_path)
         model.load_state_dict(checkpoint["model_state"])
     
