@@ -266,9 +266,10 @@ class Server:
         diff_dom_scores=[]
         
         for c in self.test_clients:
-            for i in range(5):
-                if c.name in self.client_dict[i]:
-                    c.model=self.model[i]
+            if self.args.task == 5 :
+                for i in range(5):
+                    if c.name in self.client_dict[i]:
+                        c.model=self.model[i]
             if c.name == 'test_same_dom':
                 print("SAME DOM")
 
