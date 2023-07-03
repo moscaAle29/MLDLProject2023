@@ -210,8 +210,6 @@ class Server:
                 if self.args.test is False:
                     self.logger.log_metrics({'Train Mean IoU': train_score['Mean IoU']}, step=r + 1)
 
-                self.metrics['eval_train'].reset()
-
                 #eval on single client
                 if self.single_client is not None:
                     self.single_client.eval_train(self.metrics['eval_train'])
@@ -219,9 +217,6 @@ class Server:
                     if self.args.test is False:
                         self.logger.log_metrics({f'Train Mean IoU{self.args.dataset}': train_score['Mean IoU']}, step=r + 1)
 
-
-                #erase the old results before evaluating the updated model
-                self.metrics['eval_train'].reset()
                 print("FINISH EVALUATION")
 
                 print("-------------------------EVALUATION ON TEST DATASET-------------------------")

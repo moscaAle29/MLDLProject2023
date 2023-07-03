@@ -250,8 +250,6 @@ def main():
     
     teacher=None
     teacher_kd = None
-    if args.kd is True:
-        teacher_kd = model_init(args)
     
     if args.task==1:
         load_path = os.path.join('checkpoints', 'task1',f'task1.ckpt')
@@ -306,18 +304,12 @@ def main():
     else:
         print("not implemented")
         return
-     
-    if teacher is not None:
-        teacher.cuda()  
-    
-    if teacher_kd is not None:
-        teacher_kd.cuda()
-        server.set_teacher_kd(teacher_kd)
-    
-    if teacher is not None:
-        server.set_teacher(teacher)
     
     model.cuda()
+    
+    if teacher is not None:
+        teacher.cuda() 
+        
     print("Done!")
     
     print('Generate datasets...')
@@ -329,6 +321,14 @@ def main():
         args, train_datasets, evaluation_datasets, test_datasets, model)
     server = Server(args, single_client, train_clients,
                     test_clients, model, metrics)
+    
+    if teacher_kd is not None:
+        teacher_kd.cuda()
+        server.set_teacher_kd(teacher_kd)
+    
+    if teacher is not None:
+        server.set_teacher(teacher)
+        
     server.test(final_test=True)
 
 if __name__=="__main__":
