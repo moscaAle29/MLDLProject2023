@@ -13,14 +13,59 @@ Example of FedAvg experiment
 ```bash
 python main.py --dataset idda --model deeplabv3_mobilenetv2 --num_rounds 200 --num_epochs 2 --clients_per_round 8 
 ```
-Launching the main.py function will start the training, if your goal is just to evaluate the result please select a number of clients and epochs and run the test.py file specifying
+## How to test
+In order to test the algorithm
+Launching the main.py function will start the training, if your goal is just to evaluate the result please select a number of clients and epochs and run the test.py file specifying the configuration you want to evaluate using the ```args``` parameter.
+#### task 1
+In the first task we are asked to run experiments in order to find the better configuration, we included the checkpoint for the best configuration, to test run 
+```bash
+python test.py --task 1  --setting centralized --dataset idda --dataset2 idda --model deeplabv3_mobilenetv2 --num_rounds 100
+```
+#### task 2
+In task 2 we are asked to move to a federated learning setting using the data augmentation techniques found in the previous steps and selecting the number of clients and epochs:
 - Number of clients: [2 4 8]
 - Number of epochs: [1 3 6 9 12]
 ```bash
-python test.py --task_2_test --setting federated --dataset idda --dataset2 idda --model deeplabv3_mobilenetv2 --num_rounds 100 --num_epochs *Number of epochs* --clients_per_round *Number of Clients*
+python test.py --task 2 --setting federated --dataset idda --dataset2 idda --model deeplabv3_mobilenetv2 --num_rounds 100 --num_epochs *selected_value* --clients_per_round *selected_value*
+```
+#### task 3.2
+In this task we are asked to move to an unlabeled dataset using a model trained on a labeled one choosing batch size and learning rate, you can choose 
+- Batch size: 2, Learning Rate:0.01
+- Batch size: 4, Learning Rate:0.01
+- Batch size: 6, Learning Rate:0.01
+- Batch size: 8, Learning Rate:0.01
+- Batch size: 10, Learning Rate:0.01
+- Batch size: 4, Learning Rate:0.03
+- Batch size: 8, Learning Rate:0.03
+- Batch size: 4, Learning Rate:0.05
+```bash
+python test.py --task 3.2 --setting centralized --dataset gta5 --dataset2 idda --model deeplabv3_mobilenetv2 --num_rounds 100 --fda_alpha *selected_value* --bs *selected_value*
+```
+#### task 3.4
+We now want to use a domain adaptation technique called FDA, choosing Batch size and the value of alpha for FDA
+- Batch size: 4
+- Alpha value: [0.1, 0.05, 0.01,0.005]
+```bash
+python test.py --task 3.4 --setting centralized --dataset gta5 --dataset2 idda --model deeplabv3_mobilenetv2 --num_rounds 100 --fda_alpha *selected_value* --bs 4
 ```
 
+#### task 4.2
+In this task we want to use a self-training technique using a teacher model loading checkpoints from *task 3.2* specifying number of clients and update interval
+- Number of Clients: [2, 8]
+- Number of local epochs: [0, 1]
+*update interval 0 equals never update*
+```bash
+python test.py --task 4.2 --setting centralized --dataset gta5 --dataset2 idda --model deeplabv3_mobilenetv2 --num_rounds 100 --clients_per_round *selected_value* --update_interval *selected_value*
+```
 
+#### task 4.3
+In this task we want to use a self-training technique using a teacher model loading checkpoints from *task 3.4* specifying number of clients and update interval
+- Number of Clients: [2, 8]
+- Number of local epochs: [0, 1]
+*update interval 0 equals never update*
+```bash
+python test.py --task 4.2 --setting centralized --dataset gta5 --dataset2 idda --model deeplabv3_mobilenetv2 --num_rounds 100 --clients_per_round *selected_value* --update_interval *selected_value*
+```
    [dill]: <https://github.com/joemccann/dillinger>
    [git-repo-url]: <https://github.com/joemccann/dillinger.git>
    [john gruber]: <http://daringfireball.net>
