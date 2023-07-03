@@ -61,6 +61,6 @@ def get_parser():
     parser.add_argument('--lambda_kd', type=float, default=10.0, help='knowledge distillation rate')
 
     #||| test.py Arguments |||
-    parser.add_argument('--test', action='store_true', default=False,required= False, help="Test task 2 loading the checkpoint with specified number of clients, epochs and rounds" )
+    parser.add_argument('--test', action='store_true', default=True,required= False, help="Test task 2 loading the checkpoint with specified number of clients, epochs and rounds" )
     
     return parser
