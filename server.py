@@ -20,9 +20,10 @@ class Server:
         self.test_clients = test_clients
         self.model = model
         self.metrics = metrics
-        self.model_params_dict = copy.deepcopy(self.model.state_dict())
+        #self.model_params_dict = copy.deepcopy(self.model.state_dict())
         self.teacher_params_dict = None
         self.teacher = None
+        self.client_dict=None
         
         self.output_file= open("results.txt", "a")
         
@@ -44,6 +45,8 @@ class Server:
         self.teacher_kd = teacher_kd
         self.teacher_kd_params_dict = copy.deepcopy(self.teacher_kd.state_dict())
 
+    def set_client_dict(self,dict):
+        self.client_dict=dict
     
     def save_model(self, round, save_eval = True):
         if save_eval:
@@ -263,6 +266,9 @@ class Server:
         diff_dom_scores=[]
         
         for c in self.test_clients:
+            for i in range(5):
+                if c.name in self.client_dict[i]:
+                    c.model=self.model[i]
             if c.name == 'test_same_dom':
                 print("SAME DOM")
 

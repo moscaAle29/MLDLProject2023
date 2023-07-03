@@ -239,6 +239,14 @@ def get_string(value):
     value=value.split(".")[1]
     return f"0{value}"
 
+def find_task_5(kd, sw):
+    name="cl_"
+    if kd is True:
+        name+="kd_"
+    if sw is True:
+        name+="sw_"
+    return name
+
 def main():
     parser=get_parser()
     args=parser.parse_args()
@@ -298,15 +306,15 @@ def main():
         checkpoint = torch.load(load_path)
         model.load_state_dict(checkpoint["model_state"])
         teacher.load_state_dict(checkpoint["model_state"])
+    
     elif args.task==5:
-        if args.clients_per_round not in [2,8] or args.update_interval not in [0,1]:
-            print("you specified the wrong number of clients or update interval")
-            return
-        teacher = model_init(args)
-        load_path = os.path.join('checkpoints', 'task5',f'cl{args.clients_per_round}_ui{args.update_interval}.ckpt')
-        checkpoint = torch.load(load_path)
-        model.load_state_dict(checkpoint["model_state"])
-        teacher.load_state_dict(checkpoint["model_state"])
+        models=[]
+        base_name=find_task_5(args.kd, args.sw)
+        for i in range(5):
+            models.append(model_init(args))
+            load_path = os.path.join('checkpoints', 'task5',f'{base_name}+{i}.ckpt')
+            checkpoint = torch.load(load_path)
+            model[i].load_state_dict(checkpoint["model_state"])
     
     else:
         print("not implemented")
@@ -326,8 +334,22 @@ def main():
     metrics = set_metrics(args)
     single_client, train_clients, test_clients = gen_clients(
         args, train_datasets, evaluation_datasets, test_datasets, model)
-    server = Server(args, single_client, train_clients,
-                    test_clients, model, metrics)
+    if args.task== 5:
+        server = Server(args, single_client, train_clients,
+                        test_clients, models, metrics)
+        clients_dict={
+            0: ['T02_CN_A_U1', 'T03_CN_A_U1', 'T01_CN_A_U1', 'T02_CN_J_U2', 'T03_CN_J_U1', 'T03_CN_J_U2', 'test_same_dom'],
+            1: ['T02_CS_A_U1', 'T02_CS_A_U2', 'T02_CS_J_U1', 'T02_CS_J_U2'],
+            2: ['T01_CN_J_U1', 'T01_CN_J_U2', 'T03_CN_A_U2', 'T01_CN_A_U2'], 
+            3: ['T03_CS_A_U1', 'T03_CS_A_U2', 'T03_CS_J_U1', 'T03_CS_J_U2', 'test_diff_dom'],
+            4: ['T01_CS_J_U1', 'T01_CS_J_U2', 'T01_CS_A_U1', 'T01_CS_A_U2'], 
+            5: ['T02_CN_A_U2', 'T02_CN_J_U1']
+            }
+        server.set_client_dict(clients_dict)
+    else:
+        server = Server(args, single_client, train_clients,
+                        test_clients, model, metrics)
+    
     
     if teacher_kd is not None:
         teacher_kd.cuda()
