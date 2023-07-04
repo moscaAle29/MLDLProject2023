@@ -311,16 +311,21 @@ def main():
         models=[]
         base_name=find_task_5(args.kd, args.sw)
         for i in range(5):
-            models.append(model_init(args))
-            load_path = os.path.join('checkpoints', 'task5',f'{base_name}+{i}.ckpt')
+            model=model_init(args)
+            load_path = os.path.join('checkpoints', 'task5',f'{base_name}{i}.ckpt')
             checkpoint = torch.load(load_path)
-            model[i].load_state_dict(checkpoint["model_state"])
+            model.load_state_dict(checkpoint["model_state"])
+            models.append(model)
     
     else:
         print("not implemented")
         return
     
-    model.cuda()
+    if args.task == 5:
+      for i in range(5):
+        models[i].cuda()
+    else:
+      model.cuda()
     
     if teacher is not None:
         teacher.cuda() 
