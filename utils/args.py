@@ -62,6 +62,6 @@ def get_parser():
 
     #||| test.py Arguments |||
     parser.add_argument('--test', action='store_true', default=True,required= False, help="Test task 2 loading the checkpoint with specified number of clients, epochs and rounds" )
-    parser.add_argument('--swat', action='store_true', default=False,required= False, help="SWAt flag" )
+    parser.add_argument('--swa', action='store_true', default=False,required= False, help="SWAt flag" )
     
     return parser

@@ -58,7 +58,7 @@ In this task we want to use a self-training technique using a teacher model load
 - Number of local epochs: [0, 1]
 *update interval 0 equals never update*
 ```bash
-python test.py --task 4.2 --setting centralized --dataset gta5 --dataset2 idda --model deeplabv3_mobilenetv2 --num_rounds 100 --clients_per_round *selected_value* --update_interval *selected_value*
+python test.py --task 4.2 --setting federated --dataset gta5 --dataset2 idda --model deeplabv3_mobilenetv2 --num_rounds 100 --clients_per_round *selected_value* --update_interval *selected_value*
 ```
 
 #### task 4.3
@@ -67,7 +67,14 @@ In this task we want to use a self-training technique using a teacher model load
 - Number of local epochs: [0, 1]
 *update interval 0 equals never update*
 ```bash
-python test.py --task 4.2 --setting centralized --dataset gta5 --dataset2 idda --model deeplabv3_mobilenetv2 --num_rounds 100 --clients_per_round *selected_value* --update_interval *selected_value*
+python test.py --task 4.2 --setting federated --dataset gta5 --dataset2 idda --model deeplabv3_mobilenetv2 --num_rounds 100 --clients_per_round *selected_value* --update_interval *selected_value*
+```
+#### task 5
+In this task we implemented a VAE to cluster the clients, for the ablation study you can choose to test using Knowledge Distillation and Sthocastic Weight Averaging
+- Knowledge Distillation: --kd
+- Sthocastic Weight Averaging: --swa
+```bash
+python test.py --task 5 --setting federated --dataset gta5 --dataset2 idda --model deeplabv3_mobilenetv2 --num_rounds 100 --kd --swa
 ```
    [dill]: <https://github.com/joemccann/dillinger>
    [git-repo-url]: <https://github.com/joemccann/dillinger.git>
