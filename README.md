@@ -42,7 +42,7 @@ In this task we are asked to move to an unlabeled dataset using a model trained 
 - Batch size: 8, Learning Rate:0.03
 - Batch size: 4, Learning Rate:0.05
 ```bash
-python test.py --task 3.2 --setting centralized --dataset gta5 --dataset2 idda --model deeplabv3_mobilenetv2 --num_rounds 100 --fda_alpha *selected_value* --bs *selected_value*
+python test.py --task 3.2 --setting centralized --dataset gta5 --dataset2 idda --model deeplabv3_mobilenetv2 --num_rounds 100 --lr *selected_value* --bs *selected_value*
 ```
 #### task 3.4
 We now want to use a domain adaptation technique called FDA, choosing Batch size and the value of alpha for FDA
@@ -58,7 +58,7 @@ In this task we want to use a self-training technique using a teacher model load
 - Number of local epochs: [0, 1]
 *update interval 0 equals never update*
 ```bash
-python test.py --task 4.2 --setting centralized --dataset gta5 --dataset2 idda --model deeplabv3_mobilenetv2 --num_rounds 100 --clients_per_round *selected_value* --update_interval *selected_value*
+python test.py --task 4.2 --setting federated --dataset gta5 --dataset2 idda --model deeplabv3_mobilenetv2 --num_rounds 100 --clients_per_round *selected_value* --update_interval *selected_value*
 ```
 
 #### task 4.3
@@ -67,7 +67,14 @@ In this task we want to use a self-training technique using a teacher model load
 - Number of local epochs: [0, 1]
 *update interval 0 equals never update*
 ```bash
-python test.py --task 4.2 --setting centralized --dataset gta5 --dataset2 idda --model deeplabv3_mobilenetv2 --num_rounds 100 --clients_per_round *selected_value* --update_interval *selected_value*
+python test.py --task 4.3 --setting federated --dataset gta5 --dataset2 idda --model deeplabv3_mobilenetv2 --num_rounds 100 --clients_per_round *selected_value* --update_interval *selected_value*
+```
+#### task 5
+In this task we implemented a VAE to cluster the clients, for the ablation study you can choose to test using Knowledge Distillation and Sthocastic Weight Averaging
+- Knowledge Distillation: --kd
+- Sthocastic Weight Averaging: --swa
+```bash
+python test.py --task 5 --setting federated --dataset gta5 --dataset2 idda --model deeplabv3_mobilenetv2 --num_rounds 100 --kd --swa
 ```
    [dill]: <https://github.com/joemccann/dillinger>
    [git-repo-url]: <https://github.com/joemccann/dillinger.git>
